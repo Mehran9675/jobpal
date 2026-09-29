@@ -37,14 +37,19 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Smoke tests
-        run: npm run smoke
-
+      # The smoke suite evaluates the built background bundle, so the bundles
+      # must exist before it runs.
       - name: Build Chrome bundle
         run: npm run build
 
       - name: Build Firefox bundle
         run: npm run build:firefox
+
+      - name: Smoke tests
+        run: npm run smoke
+
+      - name: Smoke test the Firefox background bundle
+        run: node scripts/smoke-background.mjs --firefox
 
       - name: Verify the manifest version matches the tag
         run: |
