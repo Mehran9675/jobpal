@@ -13,7 +13,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
     name: '__MSG_extName__',
     short_name: 'JobPal',
     description: '__MSG_extDescription__',
-    version: '1.0.32',
+    version: '1.0.0',
     default_locale: 'en',
     minimum_chrome_version: isFirefox ? undefined : '116',
     icons: {
