@@ -1,7 +1,7 @@
 {
   "name": "jobpal-extension",
   "productName": "JobPal",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "JobPal - AI job-application copilot. Tailors your resume, CV and cover letter to any job and applies for you.",

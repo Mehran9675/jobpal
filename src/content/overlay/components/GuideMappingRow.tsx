@@ -8,6 +8,7 @@ export function GuideMappingRow({ selector, fieldKey, label }: { selector: strin
       <div className="jp-guide-value mono">{label || selector.slice(0, 46)}</div>
       <select
         className="jp-select"
+        style={{ color:"black" }}
         value={fieldKey}
         onChange={(event) => {
           applyMapping(selector, event.target.value, label);
