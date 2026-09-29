@@ -1,11 +1,11 @@
 {
   "name": "jobpaal-extension",
   "productName": "JobPaal",
-  "version": "1.0.7",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "JobPaal - AI job-application copilot. Tailors your resume, CV and cover letter to any job posting.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=20"
   },

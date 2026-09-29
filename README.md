@@ -121,3 +121,8 @@ Every [release](https://github.com/Mehran9675/jobpal/releases/latest) attaches r
 
 ---
 
+
+## License
+
+Apache License 2.0 - see [LICENSE](LICENSE) for the full text.
+

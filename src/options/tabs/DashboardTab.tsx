@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { AgentState, AppSettings, ApplicationRecord, UsageSummary } from '@/types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { AppSettings, ApplicationRecord, UsageSummary } from '@/types';
 import { PROVIDER_MAP } from '@/lib/ai/providers';
 import { aiStatusFor } from '@/lib/ai/status';
 import { formatTokens, todayUsage } from '@/lib/ai/usage';
 import { sendMessage } from '@/lib/messaging';
 import { Badge, Button, EmptyState, Select, Show, Stat } from '@/ui/components';
-import { IconBriefcase, IconCpu, IconFile, IconRobot, IconSparkles, IconPlay, IconPause } from '@/ui/components/Icons';
-import { useAgent, useDocuments } from '@/ui/hooks';
+import { IconBriefcase, IconCpu, IconFile, IconGauge, IconSparkles } from '@/ui/components/Icons';
+import { useDocuments } from '@/ui/hooks';
 import { RecentApplicationRow } from './dashboard/components/RecentApplicationRow';
 
 export function DashboardTab({
@@ -20,16 +20,18 @@ export function DashboardTab({
   navigate: (tab: string, param?: string) => void;
   patchSettings: (patch: Record<string, unknown>) => Promise<AppSettings>;
 }) {
-  const { agent, action } = useAgent(5000);
   const { data: documents } = useDocuments();
   const [usage, setUsage] = useState<UsageSummary | null>(null);
   const status = aiStatusFor(settings);
 
+  const refreshUsage = useCallback(async () => {
+    const summary = await sendMessage('ai.usage', undefined).catch(() => null);
+    if (summary) setUsage(summary);
+  }, []);
+
   useEffect(() => {
-    void sendMessage('ai.usage', undefined)
-      .then(setUsage)
-      .catch(() => undefined);
-  }, [settings.ai.activeProviderId, settings.ai.connections]);
+    void refreshUsage();
+  }, [refreshUsage, settings.ai.activeProviderId, settings.ai.connections]);
 
   const stats = useMemo(() => {
     const byStatus = (statusId: string) => applications.filter((application) => application.status === statusId).length;
@@ -49,6 +51,15 @@ export function DashboardTab({
   const connection = status.providerId ? settings.ai.connections[status.providerId] : undefined;
   const providerDef = status.providerId ? PROVIDER_MAP[status.providerId] : undefined;
   const today = usage ? todayUsage(usage) : null;
+  const budget = settings.ai.tokenBudget ?? 0;
+  const providerRows = useMemo(
+    () =>
+      Object.entries(usage?.byProvider ?? {})
+        .map(([id, record]) => ({ id, name: PROVIDER_MAP[id]?.name ?? id, ...record }))
+        .sort((a, b) => b.totalTokens - a.totalTokens)
+        .slice(0, 4),
+    [usage],
+  );
   const modelChoices = useMemo(() => {
     const seen = new Set<string>();
     const out: { id: string; label: string }[] = [];
@@ -69,22 +80,13 @@ export function DashboardTab({
     </option>
   );
 
-  const renderLogEntry = (entry: AgentState['log'][number], index: number) => (
-    <div key={index} className={`log-view__row log-view__row--${entry.level}`}>
-      <span className="log-view__time">{new Date(entry.at).toLocaleTimeString()}</span>
-      <span>{entry.message}</span>
+  const renderProviderUsage = (entry: { id: string; name: string; calls: number; errors: number; totalTokens: number }) => (
+    <div className="row row--between" key={entry.id}>
+      <span className="small">{entry.name}</span>
+      <span className="tiny muted">
+        {`${formatTokens(entry.totalTokens)} tokens · ${entry.calls} call${entry.calls === 1 ? '' : 's'} · ${entry.errors} error${entry.errors === 1 ? '' : 's'}`}
+      </span>
     </div>
-  );
-
-  const renderAgentToggleIcon = (paused: boolean) => (
-    <>
-      <Show if={paused}>
-        <IconPlay size={13} />
-      </Show>
-      <Show if={!paused}>
-        <IconPause size={13} />
-      </Show>
-    </>
   );
 
   const renderApplication = (application: ApplicationRecord) => (
@@ -97,7 +99,7 @@ export function DashboardTab({
         <div>
           <h1 className="main__title">Dashboard</h1>
           <p className="main__subtitle">
-            Your application pipeline at a glance. JobPaal tailors every document to the posting, then either fills the form for you or applies on your behalf.
+            Your application pipeline at a glance. JobPaal tailors every document to the posting and fills the application form for you.
           </p>
         </div>
         <div className="row">
@@ -180,65 +182,42 @@ export function DashboardTab({
 
         <section className="panel">
           <div className="panel__title">
-            <IconRobot size={16} /> Agent
+            <IconGauge size={16} /> AI usage
           </div>
           <div className="panel__hint">
-            Let JobPaal work through your queue in the background. The agent needs an active AI connection; rules decide what to skip and when it may submit.
+            Every AI call is counted locally in your browser. JobPaal never reports usage anywhere - this is your own record per day and per provider.
           </div>
-          <Show if={!status.ready}>
-            <div className="card card--flat mb-2">
-              <div className="row row--between">
-                <span className="small muted">The agent is disabled until an AI provider is connected.</span>
-                <Button size="sm" variant="primary" onClick={() => navigate('ai')}>
-                  Connect AI
-                </Button>
-              </div>
-            </div>
+          <Show if={!usage}>
+            <div className="small muted">Loading usage…</div>
           </Show>
-          <div className="row row--between">
-            <div>
-              <div className="strong">{agent?.running ? (agent.paused ? 'Paused' : 'Running') : 'Stopped'}</div>
-              <div className="tiny muted">
-                {agent
-                  ? `${agent.queue.filter((item) => item.status === 'queued').length} queued · ${agent.appliedToday}/${settings.automation.dailyLimit} today · ${agent.stats.applied} applied all-time`
-                  : 'Loading agent state…'}
+          <Show if={Boolean(usage)}>
+            <div className="row row--between">
+              <div>
+                <div className="strong">{`${formatTokens(today?.totalTokens ?? 0)} tokens today`}</div>
+                <div className="tiny muted">
+                  {`${today?.calls ?? 0} calls today · ${formatTokens(usage?.total.totalTokens ?? 0)} tokens all-time · ${usage?.total.calls ?? 0} calls · ${usage?.total.errors ?? 0} errors`}
+                </div>
               </div>
-            </div>
-            <Show if={Boolean(agent?.running)}>
-              <div className="row">
-                <Button size="sm" variant="outline" icon={renderAgentToggleIcon(Boolean(agent?.paused))} onClick={() => void action(agent?.paused ? 'agent.resume' : 'agent.pause')}>
-                  {agent?.paused ? 'Resume' : 'Pause'}
-                </Button>
-                <Button size="sm" variant="danger" onClick={() => void action('agent.stop')}>
-                  Stop
-                </Button>
-              </div>
-            </Show>
-            <Show if={!agent?.running}>
-              <Button
-                size="sm"
-                variant="primary"
-                icon={<IconPlay size={13} />}
-                disabled={!status.ready}
-                title={status.ready ? 'Start the agent' : 'Connect an AI provider first'}
-                onClick={() =>
-                  void action('agent.start')
-                    .then(() => undefined)
-                    .catch((error) => console.warn('[jobpaal] could not start agent:', error))
-                }
-              >
-                Start
+              <Button size="sm" variant="outline" onClick={() => void refreshUsage()}>
+                Refresh
               </Button>
+            </div>
+            <Show if={budget > 0}>
+              <div className="tiny muted mt-1">
+                {`Budget: ${formatTokens(usage?.total.totalTokens ?? 0)} of ${formatTokens(budget)} tokens used${(usage?.total.totalTokens ?? 0) >= budget ? ' - budget reached' : ''}`}
+              </div>
             </Show>
-          </div>
-          <Show if={(agent?.log ?? []).length > 0}>
+          </Show>
+          <Show if={providerRows.length > 0}>
             <div className="divider" />
-            <div className="log-view">{agent?.log.slice(0, 6).map(renderLogEntry)}</div>
+            <div className="col">{providerRows.map(renderProviderUsage)}</div>
           </Show>
           <div className="divider" />
-          <Button size="sm" variant="ghost" onClick={() => navigate('automation')}>
-            Automation rules
-          </Button>
+          <div className="row">
+            <Button size="sm" variant="outline" onClick={() => navigate('ai')}>
+              Usage report
+            </Button>
+          </div>
         </section>
       </div>
 

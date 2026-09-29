@@ -187,20 +187,12 @@ export function SettingsTab({ settings, patchSettings }: { settings: AppSettings
               <div className="list-item__title">No JobPaal servers</div>
               <div className="list-item__meta">There is no backend. Prompts go directly from your browser to the AI provider you configured.</div>
             </div>
-            <Badge tone="success">Verified</Badge>
           </div>
           <div className="list-item">
             <IconShield size={16} />
             <div className="list-item__main">
               <div className="list-item__title">Resumes and profile stay local</div>
               <div className="list-item__meta">Stored in chrome.storage and IndexedDB. Exported only when you click export.</div>
-            </div>
-          </div>
-          <div className="list-item">
-            <IconShield size={16} />
-            <div className="list-item__main">
-              <div className="list-item__title">Autofill never submits without permission</div>
-              <div className="list-item__meta">Submission requires Auto mode, auto-submit enabled, and every rule passing.</div>
             </div>
           </div>
         </div>

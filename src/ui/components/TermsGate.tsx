@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { TERMS_CHECKS, TERMS_SECTIONS, TERMS_VERSION, type LegalCheck, type LegalSection } from '@/lib/legal';
+import { TERMS_CHECKS, TERMS_VERSION, type LegalCheck } from '@/lib/legal';
 import { Button } from './Button';
+import { TermsSections } from './TermsSections';
 
 /**
  * Full-page agreement gate. Every statement needs its own checkbox and the
@@ -10,13 +11,6 @@ export function TermsGate({ onAccept }: { onAccept: () => void | Promise<void> }
   const [checked, setChecked] = useState<boolean[]>(() => TERMS_CHECKS.map(() => false));
   const [busy, setBusy] = useState(false);
   const allAccepted = checked.every(Boolean);
-
-  const renderSection = (section: LegalSection) => (
-    <section className="terms__section" key={section.title}>
-      <h3 className="terms__heading">{section.title}</h3>
-      <p className="terms__text">{section.body}</p>
-    </section>
-  );
 
   const renderCheck = (check: LegalCheck, index: number) => (
     <label className="terms__check" key={check.id}>
@@ -48,7 +42,7 @@ export function TermsGate({ onAccept }: { onAccept: () => void | Promise<void> }
           </p>
         </header>
         <div className="terms__body">
-          {TERMS_SECTIONS.map(renderSection)}
+          <TermsSections />
           <h3 className="terms__heading">Agreement</h3>
           <div className="terms__checks">{TERMS_CHECKS.map(renderCheck)}</div>
         </div>

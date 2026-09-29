@@ -27,6 +27,11 @@ function pack(sourceDir, basename) {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const version = manifest.version;
   const entries = walk(sourceDir);
+  // Apache-2.0 requires a copy of the licence with every redistribution.
+  const licensePath = join(root, 'LICENSE');
+  if (existsSync(licensePath) && !entries.some((entry) => entry.path === 'LICENSE')) {
+    entries.push({ path: 'LICENSE', data: readFileSync(licensePath) });
+  }
   const zip = createZip(entries);
   const zipPath = join(outputDir, `${basename}-${version}.zip`);
   writeFileSync(zipPath, zip);

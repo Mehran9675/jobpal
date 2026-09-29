@@ -6,8 +6,8 @@ import {
   IconGauge,
   IconMessage,
   IconPalette,
-  IconRobot,
   IconSettings,
+  IconShield,
   IconUser,
 } from '@/ui/components/Icons';
 
@@ -28,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'prompts', label: 'Prompts & style', section: 'Intelligence', icon: <IconMessage /> },
   // { id: 'automation', label: 'Automation', section: 'Agent', icon: <IconRobot /> },
   { id: 'settings', label: 'Settings', section: 'System', icon: <IconSettings /> },
+  { id: 'terms', label: 'Terms and privacy', section: 'System', icon: <IconShield /> },
 ];
 
 export const NAV_SECTIONS: string[] = [...new Set(NAV_ITEMS.map((item) => item.section))];

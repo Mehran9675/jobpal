@@ -17,4 +17,5 @@ export { StatusBadge } from './StatusBadge';
 export { Textarea } from './Textarea';
 export { TermsGate } from './TermsGate';
 export { TermsNotice } from './TermsNotice';
+export { TermsSections } from './TermsSections';
 export { Toggle, type ToggleProps } from './Toggle';

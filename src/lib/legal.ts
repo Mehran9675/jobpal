@@ -16,7 +16,7 @@ export interface LegalCheck {
 export const TERMS_SECTIONS: LegalSection[] = [
   {
     title: '1. What JobPaal does',
-    body: 'JobPaal is a browser extension that keeps a private record of your job applications and produces ATS-optimised documents (resume, cover letter and screening answers) for each job you choose, using the AI provider you connect. It is provided under the MIT licence, as is and without warranty of any kind.',
+    body: 'JobPaal is a browser extension that keeps a private record of your job applications and produces ATS-optimised documents (resume, cover letter and screening answers) for each job you choose, using the AI provider you connect. It is open source under the Apache License, Version 2.0, and is provided as is and without warranty of any kind beyond that licence.',
   },
   {
     title: '2. Your data stays with you',
