@@ -25,7 +25,7 @@ export function MatchPanel() {
     return (
       <div className="jp-match-card">
         <div className="jp-match-empty">
-          <span className="jp-match-label">Match score — not calculated yet</span>
+          <span className="jp-match-label">Match score - not calculated yet</span>
           <MiniButton onClick={() => void runAnalyze()} disabled={calculateDisabled} title={state.aiReady ? 'Score this job against your profile' : 'Connect an AI provider first'}>
             Calculate
           </MiniButton>

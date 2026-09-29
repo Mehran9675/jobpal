@@ -212,7 +212,7 @@ export function SettingsTab({ settings, patchSettings }: { settings: AppSettings
             <div className="strong">v{chrome.runtime.getManifest().version}</div>
           </Field>
           <Field label="Engine">
-            <div className="strong">{settings.ai.activeProviderId ? `${settings.ai.activeProviderId}${settings.ai.connections[settings.ai.activeProviderId]?.model ? ` · ${settings.ai.connections[settings.ai.activeProviderId]?.model}` : ''}` : 'No AI connected — AI features disabled'}</div>
+            <div className="strong">{settings.ai.activeProviderId ? `${settings.ai.activeProviderId}${settings.ai.connections[settings.ai.activeProviderId]?.model ? ` · ${settings.ai.connections[settings.ai.activeProviderId]?.model}` : ''}` : 'No AI connected - AI features disabled'}</div>
           </Field>
         </div>
         <div className="row">

@@ -27,7 +27,7 @@ async function sha256(input: string): Promise<string> {
 
 /**
  * Runs an OAuth 2.0 PKCE flow through `chrome.identity.launchWebAuthFlow`.
- * Providers must be configured with an authorize/token URL — either a built-in
+ * Providers must be configured with an authorize/token URL - either a built-in
  * provider (Gemini) or a custom provider the user configured.
  */
 export async function startOAuthFlow(providerId: string, clientIdOverride?: string): Promise<OAuthResult> {
@@ -75,7 +75,7 @@ export async function startOAuthFlow(providerId: string, clientIdOverride?: stri
   const errorParam = parsed.searchParams.get('error');
   if (errorParam) return { ok: false, message: `Provider returned "${errorParam}".` };
   if (!code) return { ok: false, message: 'No authorization code was returned.' };
-  if (returnedState && returnedState !== state) return { ok: false, message: 'OAuth state mismatch — the flow was tampered with.' };
+  if (returnedState && returnedState !== state) return { ok: false, message: 'OAuth state mismatch - the flow was tampered with.' };
 
   try {
     const body = new URLSearchParams({

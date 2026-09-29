@@ -71,7 +71,7 @@ for (const file of files) {
   seen.add(file.format);
 }
 
-// Links must be real, clickable annotations — not plain text.
+// Links must be real, clickable annotations - not plain text.
 if (!resumePdfBytes) throw new Error('Missing resume PDF');
 const loadedPdf = await PDFDocument.load(resumePdfBytes);
 const linkUris = [];

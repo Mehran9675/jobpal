@@ -19,7 +19,7 @@ export function ApplicationRow({ application, onOpen }: { application: Applicati
       <td>
         <Show if={application.matchScore !== undefined}>{`${Math.round(application.matchScore ?? 0)}%`}</Show>
         <Show if={application.matchScore === undefined}>
-          <span className="muted">—</span>
+          <span className="muted">-</span>
         </Show>
       </td>
       <td className="muted small">{application.documents.length}</td>

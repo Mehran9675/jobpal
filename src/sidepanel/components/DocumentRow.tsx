@@ -29,7 +29,7 @@ export function DocumentRow({
           { label: 'View in new tab', icon: <IconEye size={14} />, onSelect: () => openDocumentViewer(document.id) },
           { label: 'Download', icon: <IconDownload size={14} />, onSelect: () => onDownload(document) },
           { label: 'Regenerate', icon: <IconRefresh size={14} />, onSelect: () => onRegenerate(document) },
-          { label: 'Attach — choose field on page', icon: <IconTarget size={14} />, onSelect: () => onAttachToPage(document) },
+          { label: 'Attach - choose field on page', icon: <IconTarget size={14} />, onSelect: () => onAttachToPage(document) },
         ]}
       />
     </div>

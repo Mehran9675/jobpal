@@ -121,13 +121,13 @@ export async function processNextItem(): Promise<void> {
   const ai = aiStatusFor(settings);
   if (!ai.ready) {
     const state = await getAgentState();
-    if (state.running) await agentPause(`AI required — ${ai.reason ?? 'connect an AI provider'}.`);
+    if (state.running) await agentPause(`AI required - ${ai.reason ?? 'connect an AI provider'}.`);
     return;
   }
   let state = await getAgentState();
   if (!state.running || state.paused) return;
   if (!withinWorkingHours(settings.automation)) {
-    state = await setAgentState({ ...state, log: agentLog(state, 'info', 'Outside working hours — waiting.') });
+    state = await setAgentState({ ...state, log: agentLog(state, 'info', 'Outside working hours - waiting.') });
     return;
   }
   if (state.appliedToday >= settings.automation.dailyLimit) {
@@ -160,10 +160,10 @@ export async function processNextItem(): Promise<void> {
       currentItem: undefined,
       queue: state.queue.map((queueItem) => (queueItem.id === item.id ? { ...queueItem, status: 'failed', reason: message } : queueItem)),
       stats: { ...state.stats, failed: state.stats.failed + 1 },
-      log: agentLog(state, 'error', `Failed: ${item.title || item.url} — ${message}. Agent paused; retry when you are ready.`),
+      log: agentLog(state, 'error', `Failed: ${item.title || item.url} - ${message}. Agent paused; retry when you are ready.`),
     });
     if (settings.automation.notifyOnIssue) {
-      await notifyNeedsAttention('Application failed — agent paused', `${item.title || item.url}\n${message}\nOpen the Automation tab to retry.`);
+      await notifyNeedsAttention('Application failed - agent paused', `${item.title || item.url}\n${message}\nOpen the Automation tab to retry.`);
     }
   }
 
@@ -241,12 +241,12 @@ async function processItem(item: AgentQueueItem, mode: 'assist' | 'auto'): Promi
       await setAgentState({
         ...state,
         currentItem: undefined,
-        queue: state.queue.map((queueItem) => (queueItem.id === item.id ? { ...queueItem, status: 'needs-attention', reason: 'Application form not detected — open this link and apply manually.' } : queueItem)),
+        queue: state.queue.map((queueItem) => (queueItem.id === item.id ? { ...queueItem, status: 'needs-attention', reason: 'Application form not detected - open this link and apply manually.' } : queueItem)),
         stats: { ...state.stats, needsAttention: state.stats.needsAttention + 1 },
         log: agentLog(state, 'warn', `No form detected for ${job.title}.`),
       });
       await focusTab(tabId);
-      await notifyNeedsAttention('Form not detected', `${job.title} at ${job.company} — the application form could not be detected.`);
+      await notifyNeedsAttention('Form not detected', `${job.title} at ${job.company} - the application form could not be detected.`);
       return;
     }
 
@@ -301,7 +301,7 @@ async function processItem(item: AgentQueueItem, mode: 'assist' | 'auto'): Promi
         ...application,
         status: 'ready',
         needsAttention: decision.submit ? undefined : decision.reason,
-        timeline: [...application.timeline, { at: Date.now(), label: decision.submit ? 'Filled automatically' : `Ready for review — ${decision.reason}` }],
+        timeline: [...application.timeline, { at: Date.now(), label: decision.submit ? 'Filled automatically' : `Ready for review - ${decision.reason}` }],
         updatedAt: Date.now(),
       });
     }
@@ -315,7 +315,7 @@ async function processItem(item: AgentQueueItem, mode: 'assist' | 'auto'): Promi
     });
     await focusTab(tabId);
     if (settings.automation.notifyOnIssue) {
-      await notifyNeedsAttention('Ready for your review', `${job.title} at ${job.company} — ${decision.reason}`);
+      await notifyNeedsAttention('Ready for your review', `${job.title} at ${job.company} - ${decision.reason}`);
     }
   } catch (error) {
     await chrome.tabs.remove(tabId).catch(() => undefined);
@@ -375,7 +375,7 @@ export async function applyToCurrentTab(
     return {
       applicationId: result.application.id,
       status: 'ready',
-      message: `Documents generated (${result.documents.length}). No application form detected on this page — open the employer's form and use "Fill this page".`,
+      message: `Documents generated (${result.documents.length}). No application form detected on this page - open the employer's form and use "Fill this page".`,
     };
   }
   const fill = await tabSendMessage<{ ok: boolean; data?: { filled: number; total: number; fields: { confidence: number }[] } }>(tabId, {
@@ -387,7 +387,7 @@ export async function applyToCurrentTab(
   const host = safeHost(job.data.url);
   const decision = options.autoSubmit
     ? shouldAutoSubmit({ ...settings.automation, mode: 'auto', autoSubmit: true }, { confidence, blockers: evaluation.blockers, host })
-    : { submit: false, reason: 'Manual apply — review the form and submit when ready.' };
+    : { submit: false, reason: 'Manual apply - review the form and submit when ready.' };
 
   if (decision.submit) {
     const submit = await tabSendMessage<{ ok: boolean; data?: { submitted: boolean; reason?: string } }>(tabId, { type: 'page.submitForm', payload: undefined });

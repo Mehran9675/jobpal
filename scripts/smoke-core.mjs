@@ -27,7 +27,7 @@ const assert = (condition, message) => { if (!condition) throw new Error('ASSERT
 
 const profile = {
   id: 'p1', variantName: 'Primary', isDefault: true, updatedAt: Date.now(),
-  contact: { firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', phone: '+44 20 7946 0000' },
+  contact: { firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', phone: '+44 20 7946 0000', headline: 'Senior Front-End Developer | Transitioning to Backend' },
   presence: { linkedin: 'https://linkedin.com/in/ada', other: [] },
   summary: 'Principal engineer with 12 years in distributed systems.',
   skills: [{ category: 'Languages', items: ['TypeScript', 'Go', 'Kubernetes', 'AWS'] }],
@@ -118,11 +118,27 @@ const partial = await tailorResume(
   { highlightBullets: [], matchedSkills: [], requiredSkills: [], preferredSkills: [], keywords: [], seniority: 'senior' },
 );
 assert(partial.summary === profile.summary, 'fields the AI omits keep the original profile value');
+assert(partial.contact.headline.includes('Principal Engineer'), 'local headline fallback uses the candidate’s own title');
+assert(!partial.contact.headline.includes('Staff Platform Engineer'), 'the job title is never copied into the headline');
+assert(!partial.contact.headline.includes('Transitioning'), 'stale profile headline is never reused');
+
+const withHeadline = await tailorResume(
+  aiCtx(async () => ({ text: JSON.stringify({ headline: 'Staff Platform Engineer | TypeScript � Kubernetes', experience: [] }), model: 'm', providerId: 'x' })),
+  job,
+  { highlightBullets: [], matchedSkills: [], requiredSkills: [], preferredSkills: [], keywords: [], seniority: 'senior' },
+);
+assert(withHeadline.contact.headline === 'Staff Platform Engineer | TypeScript � Kubernetes', 'AI headline is used verbatim');
 assert(DEFAULT_SETTINGS.ai.fallbackToLocal === undefined, 'there is no local fallback setting');
 
 // --- Prompts --------------------------------------------------------------
 const system = buildSystemPrompt({ globalInstructions: 'Never lie.', tone: 'concise', writingStyle: '', avoidWords: ['synergy'], emphasize: ['scale'], templates: {} }, 'tailorResume');
 assert(system.includes('Never lie.') && system.includes('synergy') && system.includes('scale'), 'system prompt assembled');
+const exactPrompt = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'tailorResume', 90);
+assert(exactPrompt.includes('Wording level: EXACT') && exactPrompt.includes('HARD TRUTH RULES'), 'exact wording level instructions');
+const rewordPrompt = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'tailorResume', 10);
+assert(rewordPrompt.includes('Wording level: REWORDED') && !rewordPrompt.includes('Wording level: EXACT'), 'rewritten wording level instructions');
+const otherTask = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'coverLetter', 10);
+assert(!otherTask.includes('Wording level'), 'wording level only applies to resume tailoring');
 const rendered = renderTemplate(taskTemplate({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'analyzeJob'), { jobDescription: 'JD', candidateSkills: 'TS', candidateSeniority: 'senior', candidateSummary: 's' });
 assert(rendered.includes('JD') && rendered.includes('TS'), 'template placeholders replaced');
 

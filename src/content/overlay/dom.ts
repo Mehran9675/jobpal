@@ -60,7 +60,10 @@ export function makeDraggable(
   const onPointerDown = (event: PointerEvent) => {
     if (event.button !== 0) return;
     const target = event.target as HTMLElement | null;
-    if (target && target.closest('button')) return;
+    // Ignore interactive controls inside the handle (close, A-/A+, switch),
+    // but allow the handle itself to be a control (the floating JobPal button).
+    const pressedControl = target?.closest('button, a, input, label, select, textarea, [role="switch"], [data-no-drag]');
+    if (pressedControl && pressedControl !== handle) return;
     const element = getTarget();
     if (!element) return;
     const rect = element.getBoundingClientRect();

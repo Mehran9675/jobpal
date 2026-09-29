@@ -3,6 +3,7 @@ import type {
   ApplicationStatus,
   ChatResult,
   DocFormat,
+  DocKind,
   DocumentRecord,
   ExtractedJob,
   ID,
@@ -17,6 +18,15 @@ import type {
   AgentState,
   ApplicationRecord,
 } from './index';
+
+export type FieldPickTarget = 'title' | 'company' | 'location' | 'salary' | 'description';
+
+export interface FramedPickResult {
+  target: FieldPickTarget;
+  label: string;
+  value: string;
+  selector: string;
+}
 
 export interface RequestMap {
   /* page / content */
@@ -35,7 +45,7 @@ export interface RequestMap {
 
   /* manual guidance (field picker + per-site recipes) */
   'page.pickField': {
-    req: { target: 'title' | 'company' | 'location' | 'salary' | 'description' };
+    req: { target: FieldPickTarget };
     res: { target: string; label: string; value: string; selector: string } | null;
   };
   'page.getPicks': { req: undefined; res: Record<string, { value: string; selector: string }> };
@@ -50,10 +60,29 @@ export interface RequestMap {
   'page.saveRecipe': { req: undefined; res: { saved: boolean; host: string } };
   'page.forgetRecipe': { req: undefined; res: undefined };
   'page.hasRecipe': { req: undefined; res: boolean };
+  'page.jobStatus': {
+    req: undefined;
+    res: { source: 'page' | 'stored' | 'manual' | 'none'; words: number; title: string; company: string; hasDescription: boolean };
+  };
+  'page.useStoredJob': { req: { jobId: ID }; res: { ok: boolean } };
+  'page.clearStoredJob': { req: undefined; res: undefined };
+
+  /* frame pick relay: the top frame broadcasts a picker to every frame so
+     fields inside (cross-origin) iframes can be selected too */
+  'frame.pickBroadcast': { req: { token: string; target: FieldPickTarget }; res: undefined };
+  'frame.pickStart': { req: { token: string; target: FieldPickTarget }; res: undefined };
+  'frame.pickResult': { req: { token: string; result: FramedPickResult | null }; res: undefined };
+  'frame.pickDone': { req: { token: string; result: FramedPickResult | null }; res: undefined };
+  'frame.pickStop': { req: { token: string }; res: undefined };
 
   /* jobs */
   'job.save': { req: { job: ExtractedJob }; res: JobRecord };
   'job.forUrl': { req: { url: string; title?: string; company?: string }; res: { job: JobRecord | null } };
+  'job.get': { req: { jobId: ID }; res: { job: JobRecord | null } };
+  'jobs.recent': {
+    req: undefined;
+    res: { jobs: { id: ID; title: string; company: string; url: string; words: number; scrapedAt: number }[] };
+  };
   'job.analyze': { req: { jobId: ID }; res: JobAnalysis };
   'job.match': { req: { jobId: ID; profileId?: ID }; res: { score: number; reasons: string[]; missing: string[]; matched: string[]; recommendation: MatchResult['recommendation'] } };
   'pipeline.tailor': {
@@ -63,6 +92,7 @@ export interface RequestMap {
       kinds?: ('resume' | 'cover_letter' | 'answers')[];
       questions?: ApplicationQuestion[];
       form?: { hasCoverLetterField?: boolean };
+      allowNoDescription?: boolean;
     };
     res: { applicationId: ID; documents: DocumentRecord[]; analysis: JobAnalysis; answers: AnswerRecord[] };
   };
@@ -71,6 +101,11 @@ export interface RequestMap {
   'doc.render': { req: { applicationId: ID; kinds?: string[]; formats?: DocFormat[] }; res: undefined };
   'doc.preview': { req: { kind?: string; applicationId?: ID }; res: { html: string } };
   'doc.getBlob': { req: { documentId: ID }; res: { base64: string; mime: string; filename: string; kind: string } };
+  'doc.getContent': {
+    req: { documentId: ID };
+    res: { kind: DocKind; filename: string; format: DocFormat; content: string | null; editable: boolean };
+  };
+  'doc.updateContent': { req: { documentId: ID; content: string }; res: { document: DocumentRecord } };
   'doc.download': { req: { documentId: ID }; res: { ok: boolean; filename: string } };
   'doc.delete': { req: { documentId: ID }; res: undefined };
 

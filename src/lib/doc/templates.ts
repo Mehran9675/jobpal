@@ -35,13 +35,13 @@ function template(
  * single-column layouts.
  */
 export const RESUME_TEMPLATES: ResumeTemplate[] = [
-  template('essential', 'Essential', 'Clean single column, restrained rules and generous spacing — minimal and professional by default.', 'minimal', '#334155', {
+  template('essential', 'Essential', 'Clean single column, restrained rules and generous spacing - minimal and professional by default.', 'minimal', '#334155', {
     tags: ['minimal', 'professional', 'ats', 'default'],
     divider: 'line',
     headingCase: 'upper',
     atsScore: 99,
   }),
-  template('aurora', 'Aurora', 'Left sidebar with accent panel — modern and confident.', 'sidebar-left', '#6366f1', {
+  template('aurora', 'Aurora', 'Left sidebar with accent panel - modern and confident.', 'sidebar-left', '#6366f1', {
     tags: ['modern', 'two-tone', 'popular'],
     atsScore: 86,
     divider: 'none',

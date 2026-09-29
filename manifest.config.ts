@@ -13,7 +13,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
     name: '__MSG_extName__',
     short_name: 'JobPal',
     description: '__MSG_extDescription__',
-    version: '1.0.20',
+    version: '1.0.32',
     default_locale: 'en',
     minimum_chrome_version: isFirefox ? undefined : '116',
     icons: {
@@ -44,7 +44,8 @@ export function getManifest(target: 'chrome' | 'firefox') {
         matches: ['<all_urls>'],
         js: ['content.js'],
         run_at: 'document_idle',
-        all_frames: false,
+        // Runs in every frame so the picker can select fields inside iframes.
+        all_frames: true,
       },
     ],
     permissions: [
@@ -58,6 +59,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
       'contextMenus',
       'downloads',
       'identity',
+      'clipboardRead',
       ...(isFirefox ? [] : ['offscreen', 'sidePanel']),
     ],
     host_permissions: ['<all_urls>'],

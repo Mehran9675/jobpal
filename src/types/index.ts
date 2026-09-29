@@ -346,6 +346,10 @@ export interface DocumentRecord {
   createdAt: number;
   blob: Blob;
   textPreview?: string;
+  /** Editable source content for generated files (kind-specific JSON). */
+  content?: string;
+  /** Set when the user edited the content and re-rendered the file. */
+  editedAt?: number;
   /** True for files the user uploaded themselves (no job linkage, never regenerated). */
   uploaded?: boolean;
 }
@@ -535,6 +539,16 @@ export interface DocumentSettings {
   hiddenSections: SectionId[];
   /** One format per application. PDF by default; change it in the management page. */
   outputFormat: DocFormat;
+  /** 'tailored' rewrites the headline per job; 'profile' always uses your profile headline. */
+  headlineMode: 'tailored' | 'profile';
+  /**
+   * How closely generated documents stick to the candidate's own words:
+   * 100 = keep everything as reported, 0 = rework wording hard for the job.
+   * Inventing experience, skills or seniority is never allowed at any level.
+   */
+  faithfulness: number;
+  /** Override: allow generating documents even when no job description was found. */
+  allowGenerateWithoutDescription: boolean;
   /** Attach the user's own uploads instead of the generated files. */
   fileSource: 'generated' | 'uploaded';
   uploadedResumeId?: string;
@@ -615,6 +629,8 @@ export interface UISettings {
   accent: string;
   compactDensity: boolean;
   autoOpenSidePanel: boolean;
+  /** Show the floating JobPal button and panel on web pages. */
+  showOverlay: boolean;
 }
 
 export interface AppSettings {

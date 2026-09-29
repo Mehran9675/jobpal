@@ -1,6 +1,7 @@
 export type ErrorCode =
   | 'AI_REQUIRED'
   | 'AI_ERROR'
+  | 'DESCRIPTION_REQUIRED'
   | 'CANCELLED'
   | 'NO_ACTIVE_TAB'
   | 'NOT_FOUND'
@@ -29,4 +30,4 @@ export function isAIRequiredError(error: unknown): boolean {
 }
 
 export const AI_REQUIRED_MESSAGE =
-  'Connect an AI provider first — open JobPal → AI providers, add your key (or point JobPal at a local model), then press “Save & activate”.';
+  'Connect an AI provider first - open JobPal → AI providers, add your key (or point JobPal at a local model), then press “Save & activate”.';

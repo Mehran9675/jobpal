@@ -43,7 +43,7 @@ export const PROVIDERS: ProviderDef[] = [
     apiVersion: '2023-06-01',
     keyUrl: 'https://console.anthropic.com/settings/keys',
     docsUrl: 'https://docs.anthropic.com/en/api/messages',
-    description: 'Claude models excel at nuanced, truthful writing — a great fit for cover letters.',
+    description: 'Claude models excel at nuanced, truthful writing - a great fit for cover letters.',
     supportsJsonMode: true,
     defaultModel: 'claude-sonnet-4-5',
     extraHeaders: { 'anthropic-dangerous-direct-browser-access': 'true' },
@@ -181,7 +181,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'api-key-bearer',
     keyUrl: 'https://deepinfra.com/dash/api_keys',
     docsUrl: 'https://deepinfra.com/docs/openai_api',
-    description: 'Serverless host for hundreds of open models — Llama, Qwen, DeepSeek, Mistral.',
+    description: 'Serverless host for hundreds of open models - Llama, Qwen, DeepSeek, Mistral.',
     supportsJsonMode: true,
     defaultModel: 'meta-llama/Llama-3.3-70B-Instruct',
     models: [
@@ -200,7 +200,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'api-key-bearer',
     keyUrl: 'https://console.groq.com/keys',
     docsUrl: 'https://console.groq.com/docs/openai',
-    description: 'Fastest inference available — great for interactive bulk tailoring.',
+    description: 'Fastest inference available - great for interactive bulk tailoring.',
     supportsJsonMode: true,
     defaultModel: 'llama-3.3-70b-versatile',
     models: [
@@ -277,7 +277,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'api-key-bearer',
     keyUrl: 'https://www.perplexity.ai/settings/api',
     docsUrl: 'https://docs.perplexity.ai',
-    description: 'Search-grounded Sonar models — useful for company research in cover letters.',
+    description: 'Search-grounded Sonar models - useful for company research in cover letters.',
     defaultModel: 'sonar',
     models: [
       { id: 'sonar-pro', label: 'Sonar Pro', tier: 'flagship', recommended: true },
@@ -294,7 +294,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'api-key-bearer',
     keyUrl: 'https://cloud.cerebras.ai',
     docsUrl: 'https://inference-docs.cerebras.ai',
-    description: 'Wafer-scale inference — extremely fast Llama and Qwen models.',
+    description: 'Wafer-scale inference - extremely fast Llama and Qwen models.',
     supportsJsonMode: true,
     defaultModel: 'llama-3.3-70b',
     models: [
@@ -423,7 +423,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'api-key-bearer',
     keyUrl: 'https://github.com/settings/tokens',
     docsUrl: 'https://docs.github.com/en/github-models',
-    description: 'Use a GitHub PAT to access GPT-4o, Llama and more — generous free tier.',
+    description: 'Use a GitHub PAT to access GPT-4o, Llama and more - generous free tier.',
     defaultModel: 'gpt-4o-mini',
     models: [
       { id: 'gpt-4o', label: 'GPT-4o', tier: 'balanced', recommended: true },
@@ -507,7 +507,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'api-key-bearer',
     keyUrl: 'https://platform.moonshot.ai/console/api-keys',
     docsUrl: 'https://platform.moonshot.ai/docs',
-    description: 'Kimi models with extremely long context — good for whole-application context.',
+    description: 'Kimi models with extremely long context - good for whole-application context.',
     defaultModel: 'kimi-k2-0905-preview',
     models: [
       { id: 'kimi-k2-0905-preview', label: 'Kimi K2', tier: 'flagship', contextWindow: 256000, recommended: true },
@@ -718,7 +718,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'none',
     free: true,
     docsUrl: 'https://pollinations.ai',
-    description: 'Free community endpoint — no API key required. Rate limited; good for a quick trial.',
+    description: 'Free community endpoint - no API key required. Rate limited; good for a quick trial.',
     defaultModel: 'openai',
     models: [
       { id: 'openai', label: 'OpenAI (auto)', tier: 'fast', recommended: true },
@@ -739,7 +739,7 @@ export const PROVIDERS: ProviderDef[] = [
     auth: 'api-key-bearer',
     custom: true,
     docsUrl: 'https://platform.openai.com/docs/api-reference/chat',
-    description: 'Any server that speaks /chat/completions — your own vLLM, gateway, proxy or SaaS.',
+    description: 'Any server that speaks /chat/completions - your own vLLM, gateway, proxy or SaaS.',
     defaultModel: '',
     models: [],
   },

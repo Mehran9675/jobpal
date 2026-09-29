@@ -6,7 +6,7 @@ import { findApplicationForUrl } from '@/lib/applications/match';
 import { formatTokens, todayUsage } from '@/lib/ai/usage';
 import { matchFromAnalysis } from '@/lib/job/match';
 import { PasteJobModal, type PastedJobInput } from '@/ui/components/PasteJobModal';
-import { Show, type MatchCardData } from '@/ui/components';
+import { Show, Toggle, type MatchCardData } from '@/ui/components';
 import { useToast } from '@/ui/components/Toast';
 import { useAgent, useApplications, usePageContext, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
 import { buildPastedJob } from '@/lib/job/pasted';
@@ -22,7 +22,7 @@ import { AnswersCard } from './components/AnswersCard';
 import { RecentApplicationsCard } from './components/RecentApplicationsCard';
 
 export function PopupApp() {
-  const { settings } = useSettings();
+  const { settings, patch } = useSettings();
   useTheme(settings);
   const { context, tabId, reload: reloadContext } = usePageContext();
   const { agent, action } = useAgent(5000);
@@ -139,7 +139,7 @@ export function PopupApp() {
       const questions = probe?.found ? probe.questions : undefined;
       const result = await sendMessage('pipeline.tailor', { job, questions, form: { hasCoverLetterField: probe?.hasCoverLetterField } }, { timeout: 240000 });
       const report = await sendTabMessage(tabId as number, 'page.fillForm', { documentIds: result.documents.map((document) => document.id), answers: result.answers }, { timeout: 120000 });
-      return `Documents ready — filled ${report.filled} fields. Review the form, then submit.`;
+      return `Documents ready - filled ${report.filled} fields. Review the form, then submit.`;
     });
 
   const fillOnly = () =>
@@ -307,6 +307,14 @@ export function PopupApp() {
       <div className="popup">
         <PopupHeader onOpenManagement={() => void openOptions('dashboard')} />
         <div className="popup__body">
+          <div className="row row--between">
+            <Toggle
+              checked={settings.ui.showOverlay !== false}
+              onChange={(showOverlay) => void patch({ ui: { showOverlay } })}
+              label="Page overlay"
+              hint="Show the floating JobPal button on web pages."
+            />
+          </div>
           <Show if={!ai.ready}>
             <AiNotice reason={ai.reason} onConnect={() => void openOptions('ai')} />
           </Show>

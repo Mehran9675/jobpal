@@ -114,7 +114,7 @@ export function AutomationTab({
         <div>
           <h1 className="main__title">Automation</h1>
           <p className="main__subtitle">
-            The agent works through your queue in the background: reading postings, tailoring documents, filling forms and — if you allow it — submitting for
+            The agent works through your queue in the background: reading postings, tailoring documents, filling forms and - if you allow it - submitting for
             you. Every rule below is a safety gate.
           </p>
         </div>
@@ -132,7 +132,7 @@ export function AutomationTab({
               variant="primary"
               icon={<IconPlay size={15} />}
               disabled={!ai.ready}
-              title={ai.ready ? 'Start the agent' : `Connect an AI provider first — ${ai.reason ?? ''}`}
+              title={ai.ready ? 'Start the agent' : `Connect an AI provider first - ${ai.reason ?? ''}`}
               onClick={() =>
                 void action('agent.start')
                   .then(() => toast.success('Agent started.'))
@@ -181,8 +181,8 @@ export function AutomationTab({
           <div className="grid grid--2">
             <Field label="Mode" hint="Assist fills forms for review. Auto may submit when your rules allow.">
               <select className="select" value={automation.mode} onChange={(event) => void patchAutomation({ mode: event.target.value as 'assist' | 'auto' })}>
-                <option value="assist">Assist — always review</option>
-                <option value="auto">Auto — submit when allowed</option>
+                <option value="assist">Assist - always review</option>
+                <option value="auto">Auto - submit when allowed</option>
               </select>
             </Field>
             <Field label="Daily application limit">
@@ -297,7 +297,7 @@ export function AutomationTab({
           <div className="chips">{automation.allowlist.map(renderAllowlistDomain)}</div>
         </SectionCard>
 
-        <SectionCard title="Queue" hint="Jobs waiting for the agent. Failed jobs pause the agent — retry when you are ready." action={<Button size="sm" variant="ghost" onClick={() => void action('agent.clearQueue')}>Clear</Button>}>
+        <SectionCard title="Queue" hint="Jobs waiting for the agent. Failed jobs pause the agent - retry when you are ready." action={<Button size="sm" variant="ghost" onClick={() => void action('agent.clearQueue')}>Clear</Button>}>
           <Show if={(agent?.queue ?? []).length === 0}>
             <EmptyState icon={<IconRobot size={20} />} title="Queue is empty" text="Open a job posting and press “Queue” in the JobPal popup or overlay." />
           </Show>

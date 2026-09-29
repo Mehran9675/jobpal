@@ -78,7 +78,7 @@ export async function fetchProviderUsage(connection: ProviderConnection): Promis
       const record = body as { is_available?: boolean; balance_infos?: { currency?: string; total_balance?: string; granted_balance?: string; topped_up_balance?: string }[] };
       const rows = (record.balance_infos ?? []).map((info) => ({
         label: `Balance (${info.currency ?? 'currency'})`,
-        value: info.total_balance ?? '—',
+        value: info.total_balance ?? '-',
       }));
       if (typeof record.is_available === 'boolean') rows.unshift({ label: 'Account available', value: record.is_available ? 'Yes' : 'No' });
       return { supported: true, title: 'DeepSeek balance', message: 'Reported live by the DeepSeek API.', rows };

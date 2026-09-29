@@ -189,9 +189,9 @@ export async function deleteDocument(id: ID): Promise<void> {
   await idbDelete('documents', id);
 }
 
-/** Documents crossing the messaging boundary must not carry Blobs. */
+/** Documents crossing the messaging boundary must not carry Blobs or source content. */
 export function sanitizeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
-  return documents.map((document) => ({ ...document, blob: new Blob([], { type: document.mime }) }));
+  return documents.map((document) => ({ ...document, blob: new Blob([], { type: document.mime }), content: undefined }));
 }
 
 /* ------------------------------ Events ---------------------------- */

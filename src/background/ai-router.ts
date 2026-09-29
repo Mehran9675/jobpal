@@ -64,7 +64,7 @@ export async function chatWithSettings(
     await recordUsage(providerId, undefined, true);
     const message = error instanceof Error ? error.message : String(error);
     const hint = /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(connection.baseUrl ?? '')
-      ? ` — ${connection.providerId} looks like a local endpoint, check that the server is running.`
+      ? ` - ${connection.providerId} looks like a local endpoint, check that the server is running.`
       : '';
     const { patchSettings } = await import('@/lib/storage');
     await patchSettings({ ai: { connections: { [providerId]: { ...connection, status: 'error', lastError: `${message}${hint}` } } } });
@@ -81,5 +81,6 @@ export function buildTaskContext(settings: AppSettings, profile: Profile): TaskC
     config: settings.prompts,
     chat: chatRunner,
     profile,
+    faithfulness: settings.document.faithfulness,
   };
 }

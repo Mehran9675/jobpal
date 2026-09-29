@@ -20,7 +20,7 @@ function walk(dir, base = dir, files = []) {
 function pack(sourceDir, basename) {
   const manifestPath = join(sourceDir, 'manifest.json');
   if (!existsSync(manifestPath)) {
-    console.error(`[package] ${sourceDir} has no manifest.json — run the build first.`);
+    console.error(`[package] ${sourceDir} has no manifest.json - run the build first.`);
     process.exit(1);
   }
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
@@ -50,4 +50,4 @@ writeFileSync(xpiPath, firefox.zip);
 console.log(`[package] ${relative(root, xpiPath)} (copy of the Firefox zip)`);
 
 writeFileSync(join(outputDir, 'version.txt'), `${chrome.version}\n`);
-console.log(`[package] done — version ${chrome.version}`);
+console.log(`[package] done - version ${chrome.version}`);

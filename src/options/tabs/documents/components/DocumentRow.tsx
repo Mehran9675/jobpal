@@ -38,11 +38,11 @@ export function DocumentRow({
       <td>
         <Show if={Boolean(document.applicationId)}>
           <button className="btn btn--ghost btn--sm" onClick={() => onOpenApplication(document)}>
-            {document.jobTitle} — {document.company}
+            {document.jobTitle} - {document.company}
           </button>
         </Show>
         <Show if={!document.applicationId}>
-          <span className="muted">—</span>
+          <span className="muted">-</span>
         </Show>
       </td>
       <td className="muted small nowrap">{formatBytes(document.size)}</td>

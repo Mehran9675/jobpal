@@ -40,7 +40,7 @@ function mixColor(a: RGB, b: RGB, ratio: number): RGB {
 const SMART_MAP: [RegExp, string][] = [
   [/[\u2018\u2019\u201b]/g, "'"],
   [/[\u201c\u201d\u201f]/g, '"'],
-  [/[\u2013\u2014]/g, '–'],
+  [/[\u2013\u2014]/g, '-'],
   [/[\u2026]/g, '...'],
   [/[\u2022\u25cf\u25aa]/g, '-'],
   [/[\u00a0\u2009\u202f]/g, ' '],
@@ -609,7 +609,7 @@ function renderCertifications(ctx: RenderContext, resume: ResumeJson): void {
   sectionHeading(ctx, 'Certifications', 'certifications');
   for (const cert of resume.certificates) {
     const date = cert.date ? ` (${cert.date.slice(0, 4)})` : '';
-    ctx.y = ctxText(ctx, `${cert.name}${cert.issuer ? ` — ${cert.issuer}` : ''}${date}`, { maxWidth: ctx.contentWidth });
+    ctx.y = ctxText(ctx, `${cert.name}${cert.issuer ? ` - ${cert.issuer}` : ''}${date}`, { maxWidth: ctx.contentWidth });
   }
   ctx.y -= ctx.sectionGap * 0.4;
 }
@@ -618,7 +618,7 @@ function renderAwards(ctx: RenderContext, resume: ResumeJson): void {
   if (!sectionHasContent(resume, 'awards')) return;
   sectionHeading(ctx, 'Awards', 'awards');
   for (const award of resume.awards) {
-    ctx.y = ctxText(ctx, `${award.title}${award.awarder ? ` — ${award.awarder}` : ''}${award.date ? ` (${award.date.slice(0, 4)})` : ''}`);
+    ctx.y = ctxText(ctx, `${award.title}${award.awarder ? ` - ${award.awarder}` : ''}${award.date ? ` (${award.date.slice(0, 4)})` : ''}`);
   }
   ctx.y -= ctx.sectionGap * 0.4;
 }
@@ -840,7 +840,7 @@ function renderSidebarSections(ctx: RenderContext, resume: ResumeJson, geo: Retu
       case 'languages':
         drawHeading('Languages');
         for (const language of resume.languages) {
-          drawLines(`${language.language} — ${language.fluency}`, 8.4);
+          drawLines(`${language.language} - ${language.fluency}`, 8.4);
         }
         break;
       case 'certifications':
@@ -910,7 +910,7 @@ function baseContext(
 
 export async function renderResumePdf(resume: ResumeJson, template: ResumeTemplate, settings: DocumentSettings): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  doc.setTitle(`${resume.basics.name} — Resume`);
+  doc.setTitle(`${resume.basics.name} - Resume`);
   doc.setAuthor(resume.basics.name);
   doc.setProducer('JobPal');
   doc.setCreator('JobPal');
@@ -979,7 +979,7 @@ export async function renderCoverLetterPdf(
   _target?: { title?: string; company?: string },
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  doc.setTitle(`${resume.basics.name} — Cover Letter`);
+  doc.setTitle(`${resume.basics.name} - Cover Letter`);
   doc.setProducer('JobPal');
   const { fonts, asciiOnly } = await embedFonts(doc, template, settings);
   const ctx = baseContext(doc, resume, template, settings, fonts, asciiOnly);

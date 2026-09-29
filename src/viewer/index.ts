@@ -50,7 +50,7 @@ async function render(): Promise<void> {
   }
 
   const { header, toolbar, body } = shell();
-  document.title = `${record.filename} — JobPal`;
+  document.title = `${record.filename} - JobPal`;
 
   const meta = el('div');
   meta.append(el('div', 'viewer__title', record.filename));
@@ -124,7 +124,7 @@ async function render(): Promise<void> {
 
   const text = await documentText(record);
   if (!text) {
-    body.append(el('div', 'viewer__notice', 'This file has no text preview — use Download or Open raw file.'));
+    body.append(el('div', 'viewer__notice', 'This file has no text preview - use Download or Open raw file.'));
     return;
   }
   const pre = el('pre', 'viewer__text');

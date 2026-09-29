@@ -1,4 +1,4 @@
-import type { AnswerRecord, ExtractedJob, ID, PageContext } from '@/types';
+import type { AnswerRecord, ExtractedJob, ID, JobRecord, PageContext } from '@/types';
 import { getProfiles, getSettings } from '@/lib/storage';
 import { attachFileInput, fillAnswerFields, fillChoiceGroups, fillTextFields, findNextButton, findSubmitButton, type FillOutcome } from '@/lib/autofill/filler';
 import { buildFieldValues, classifyField, type FieldKey } from '@/lib/autofill/fields';
@@ -6,19 +6,19 @@ import { detectQuestions, hasApplicationForm, resolveLabel, scanFields } from '@
 import { detectPageSite, adapterForUrl, extractJobFromDocument, extractJobSearchCards, extractLinkedInProfile, seemsLikeJobPosting } from '@/lib/job/sites';
 import { metaContent } from '@/lib/job/readability';
 import { applyRecipe, clearRecipe, elementSelector, getRecipe, hostOf, readSelector, saveRecipe, type AnswerTarget, type FileTarget, type FormMapping, type JobSelectors } from '@/lib/job/recipes';
-import { startPicking, PICK_LABELS, type PickTarget } from './picker';
+import { cancelPicking, startPicking, PICK_LABELS, type JobPickTarget } from './picker';
 import { sendMessage } from '@/lib/messaging';
-import { keywordFrequency, normalizeWhitespace, sleep } from '@/lib/utils';
+import { keywordFrequency, normalizeWhitespace, sleep, uid } from '@/lib/utils';
 
 /* ------------------------------------------------------------------ */
 /* Manual guidance state                                               */
 /* ------------------------------------------------------------------ */
 
-const sessionPicks = new Map<Exclude<PickTarget, 'formField' | 'answer' | 'file'>, { value: string; selector: string }>();
+const sessionPicks = new Map<JobPickTarget, { value: string; selector: string }>();
 const sessionMappings = new Map<string, FormMapping>();
 const sessionAnswerTargets = new Map<string, { selector: string; answer: string; label: string }>();
 const sessionFileTargets = new Map<string, { selector: string; label: string }>();
-let pastedDescription: { text: string; title: string; company: string } = { text: '', title: '', company: '' };
+const pastedFields = new Map<JobPickTarget, string>();
 
 export function buildContext(): PageContext {
   const site = detectPageSite(location.href, document);
@@ -69,12 +69,66 @@ export function detectForm(): { found: boolean; fields: number; questions: Retur
 /* Manual picking & recipes                                            */
 /* ------------------------------------------------------------------ */
 
-export async function pickJobField(target: Exclude<PickTarget, 'formField' | 'answer' | 'file'>): Promise<{ target: string; label: string; value: string; selector: string } | null> {
+export interface PickedJobField {
+  target: JobPickTarget;
+  label: string;
+  value: string;
+  selector: string;
+}
+
+const pendingJobPicks = new Map<string, (result: PickedJobField | null) => void>();
+
+/** Called by the overlay in the top frame. Broadcasts the picker to every frame. */
+export async function pickJobField(target: JobPickTarget): Promise<PickedJobField | null> {
+  const token = uid('pick');
+  const result = await new Promise<PickedJobField | null>((resolve) => {
+    pendingJobPicks.set(token, resolve);
+    void sendMessage('frame.pickBroadcast', { token, target }).catch(() => {
+      if (pendingJobPicks.delete(token)) resolve(null);
+    });
+    setTimeout(() => {
+      if (pendingJobPicks.delete(token)) resolve(null);
+    }, 45000);
+  });
+  if (!result) return null;
+  const value = result.value.slice(0, 4000);
+  sessionPicks.set(target, { value, selector: result.selector });
+  return { target, label: PICK_LABELS[target], value, selector: result.selector };
+}
+
+/** Runs the picker in whichever frame the background broadcast reached. */
+export async function startFrameJobPick(token: string, target: JobPickTarget): Promise<void> {
+  // Frames without a body (or without a picker) must stay silent: the first
+  // reported result wins, so an empty frame cannot cancel the pick.
+  if (!document.body) return;
+  cancelPicking();
   const picked = await startPicking(target, elementSelector);
-  if (!picked) return null;
-  const value = picked.value.slice(0, 4000);
-  sessionPicks.set(target, { value, selector: picked.selector });
-  return { target, label: PICK_LABELS[target], value, selector: picked.selector };
+  if (picked) {
+    await sendMessage('frame.pickResult', {
+      token,
+      result: { target, label: PICK_LABELS[target], value: picked.value.slice(0, 4000), selector: picked.selector },
+    }).catch(() => undefined);
+    return;
+  }
+  // A null here is either Escape or a stop broadcast; stopped picks stay quiet.
+  if (stoppedPickTokens.has(token)) return;
+  await sendMessage('frame.pickResult', { token, result: null }).catch(() => undefined);
+}
+
+const stoppedPickTokens = new Set<string>();
+
+export function stopFrameJobPick(token: string): void {
+  stoppedPickTokens.add(token);
+  if (stoppedPickTokens.size > 64) stoppedPickTokens.clear();
+  cancelPicking();
+}
+
+/** Called in the top frame when the background relays the winning pick. */
+export function resolveFramePick(token: string, result: PickedJobField | null): void {
+  const resolve = pendingJobPicks.get(token);
+  if (!resolve) return;
+  pendingJobPicks.delete(token);
+  resolve(result);
 }
 
 export function getPicks(): Record<string, { value: string; selector: string }> {
@@ -112,14 +166,32 @@ export function setMapping(selector: string, key: FieldKey, label?: string): voi
   sessionMappings.set(selector, { selector, key, label: label ?? existing?.label });
 }
 
-/* ------------------- pasted job description ----------------------- */
+/* ----------------------- pasted job fields ------------------------ */
 
+/** Any guide field can be filled in by hand instead of by picking. */
+export function setPastedField(target: JobPickTarget, value: string): void {
+  const trimmed = value.trim();
+  if (trimmed) pastedFields.set(target, trimmed);
+  else pastedFields.delete(target);
+}
+
+export function getPastedFields(): Record<string, string> {
+  return Object.fromEntries(pastedFields.entries());
+}
+
+/** Kept for the popup and side panel paste form. */
 export function setPastedDescription(text: string, title = '', company = ''): void {
-  pastedDescription = { text: text.trim(), title: title.trim(), company: company.trim() };
+  setPastedField('description', text);
+  setPastedField('title', title);
+  setPastedField('company', company);
 }
 
 export function getPastedDescription(): { text: string; title: string; company: string } {
-  return pastedDescription;
+  return {
+    text: pastedFields.get('description') ?? '',
+    title: pastedFields.get('title') ?? '',
+    company: pastedFields.get('company') ?? '',
+  };
 }
 
 /* ------------------- answer / file destinations ------------------- */
@@ -153,7 +225,7 @@ export async function pickAnswerTarget(question: string, answer: string): Promis
   const picked = await startPicking('answer', elementSelector);
   if (!picked) return null;
   if (!isFillableElement(picked.element)) {
-    throw new Error('That element cannot hold text — pick a text input, textarea or editable field.');
+    throw new Error('That element cannot hold text - pick a text input, textarea or editable field.');
   }
   const label = resolveLabel(picked.element) || picked.label;
   sessionAnswerTargets.set(question, { selector: picked.selector, answer, label });
@@ -216,6 +288,14 @@ export async function persistRecipe(): Promise<{ saved: boolean; host: string }>
   const existing = await getRecipe(host);
   const job: JobSelectors = { ...(existing?.job ?? {}) };
   for (const [target, pick] of sessionPicks.entries()) {
+    // Selectors picked inside a frame only resolve in that frame's document,
+    // so a recipe can only remember picks that match the top document.
+    if (!pick.selector) continue;
+    try {
+      if (!document.querySelector(pick.selector)) continue;
+    } catch {
+      continue;
+    }
     job[target] = pick.selector;
   }
   const mappings = await getMappings();
@@ -246,12 +326,13 @@ export async function manualJob(): Promise<ExtractedJob | null> {
   const recipe = await getRecipe(host);
   const fromRecipe = recipe && Object.keys(recipe.job ?? {}).length > 0 ? applyRecipe(document, recipe, url) : null;
 
-  const pick = (target: Exclude<PickTarget, 'formField' | 'answer' | 'file'>) => sessionPicks.get(target)?.value;
-  const title = pick('title') ?? pastedDescription.title ?? fromRecipe?.title ?? '';
-  const description = pastedDescription.text || pick('description') || fromRecipe?.description || '';
-  const company = pick('company') ?? pastedDescription.company ?? fromRecipe?.company ?? '';
-  const location_ = pick('location') ?? fromRecipe?.location;
-  const salary = pick('salary') ?? fromRecipe?.salary;
+  const pick = (target: JobPickTarget) => sessionPicks.get(target)?.value;
+  const pasted = (target: JobPickTarget) => pastedFields.get(target);
+  const title = pick('title') || pasted('title') || fromRecipe?.title || '';
+  const description = pasted('description') || pick('description') || fromRecipe?.description || '';
+  const company = pick('company') || pasted('company') || fromRecipe?.company || '';
+  const location_ = pick('location') || pasted('location') || fromRecipe?.location;
+  const salary = pick('salary') || pasted('salary') || fromRecipe?.salary;
 
   if (!title && !description) return null;
   const keywords = description ? keywordFrequency(description, 25).map((entry) => entry.term) : [];
@@ -271,25 +352,116 @@ export async function manualJob(): Promise<ExtractedJob | null> {
   };
 }
 
-/** Auto detection first, then the user's saved recipe, then session picks. */
+export type JobSource = 'page' | 'stored' | 'manual' | 'none';
+
+let sessionJob: ExtractedJob | null = null;
+let lastResolution: { source: JobSource; words: number } | null = null;
+let lastJob: ExtractedJob | null = null;
+
+function rememberResolution(job: ExtractedJob | null, source: JobSource): ExtractedJob | null {
+  lastJob = job;
+  lastResolution = { source: job ? source : 'none', words: wordCount(job?.description) };
+  return job;
+}
+
+function wordCount(text: string | undefined): number {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function storedRecordToExtracted(job: JobRecord): ExtractedJob {
+  return {
+    url: job.url,
+    canonicalUrl: job.canonicalUrl,
+    site: job.site,
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    remote: job.remote,
+    employmentType: job.employmentType,
+    salary: job.salary,
+    description: job.description,
+    requirements: job.requirements,
+    keywords: job.keywords,
+    postedAt: job.postedAt,
+  };
+}
+
+/** Reuses a job description JobPal already scraped for this posting (any tab, any site). */
+async function fetchStoredJob(title?: string, company?: string): Promise<ExtractedJob | null> {
+  try {
+    const { job } = await sendMessage('job.forUrl', { url: location.href, title, company }, { timeout: 15000 });
+    return job ? storedRecordToExtracted(job) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The description used for tailoring: the most complete one available, no
+ * matter which tab (description or application form) or site it came from.
+ */
 export async function extractJobResolved(): Promise<ExtractedJob | null> {
+  if (sessionJob) return rememberResolution(sessionJob, 'stored');
+
   const auto = extractJob();
   const manual = await manualJob();
-  if (!manual) return auto;
-  if (!auto) return manual;
-  const manualTitle = manual.title && manual.title !== document.title ? manual.title : undefined;
-  const manualCompany = manual.company && manual.company !== hostOf(location.href) ? manual.company : undefined;
-  const useManualDescription = manual.description.length >= 120;
-  return {
-    ...auto,
-    title: manualTitle ?? auto.title,
-    company: manualCompany ?? auto.company,
-    location: manual.location ?? auto.location,
-    salary: manual.salary ?? auto.salary,
-    description: useManualDescription ? manual.description : auto.description || manual.description,
-    remote: manual.remote ?? auto.remote,
-    keywords: manual.keywords.length > 0 ? manual.keywords : auto.keywords,
+  const stored = await fetchStoredJob(manual?.title || auto?.title, manual?.company || auto?.company);
+
+  const candidates: { job: ExtractedJob; source: Exclude<JobSource, 'none'>; description: string }[] = [];
+  if (manual) candidates.push({ job: manual, source: 'manual', description: manual.description ?? '' });
+  if (auto) candidates.push({ job: auto, source: 'page', description: auto.description ?? '' });
+  if (stored) candidates.push({ job: stored, source: 'stored', description: stored.description ?? '' });
+  if (candidates.length === 0) return rememberResolution(null, 'none');
+
+  const best = [...candidates].sort((a, b) => b.description.length - a.description.length)[0];
+  const base = candidates.find((candidate) => candidate.source === 'page') ?? candidates.find((candidate) => candidate.source === 'manual') ?? candidates[0];
+  const useBestDescription = best.description.length >= 120;
+
+  const job: ExtractedJob = {
+    ...base.job,
+    description: useBestDescription ? best.description : base.description,
+    title: base.job.title || best.job.title,
+    company: base.job.company || best.job.company,
+    location: base.job.location ?? best.job.location,
+    salary: base.job.salary ?? best.job.salary,
+    remote: base.job.remote ?? best.job.remote,
+    keywords: base.job.keywords.length > 0 ? base.job.keywords : best.job.keywords,
+    requirements: base.job.requirements.length > 0 ? base.job.requirements : best.job.requirements,
   };
+  return rememberResolution(job, useBestDescription ? best.source : base.source);
+}
+
+export async function getJobStatus(): Promise<{ source: JobSource; words: number; title: string; company: string; hasDescription: boolean }> {
+  // Always re-resolve: a manual pick or a pasted description must be reflected.
+  await extractJobResolved();
+  const resolution = lastResolution ?? { source: 'none' as JobSource, words: 0 };
+  return {
+    source: resolution.source,
+    words: resolution.words,
+    title: lastJob?.title ?? '',
+    company: lastJob?.company ?? '',
+    hasDescription: resolution.words >= 20,
+  };
+}
+
+/** Explicitly use a job JobPal stored earlier (covers description-on-one-site forms). */
+export async function useStoredJob(jobId: string): Promise<boolean> {
+  try {
+    const { job } = await sendMessage('job.get', { jobId }, { timeout: 15000 });
+    if (!job) return false;
+    sessionJob = storedRecordToExtracted(job);
+    rememberResolution(sessionJob, 'stored');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function clearStoredJob(): void {
+  sessionJob = null;
+  lastResolution = null;
+  lastJob = null;
 }
 
 /** Recipe selections with their current values, so the guide can show what is remembered. */
@@ -413,7 +585,7 @@ export async function fillForm(payload: FillPayload = {}): Promise<{ filled: num
         confidence: 1,
         value: document_.filename,
         status: attached ? 'filled' : 'error',
-        error: attached ? undefined : 'Could not attach the file — download it and attach manually.',
+        error: attached ? undefined : 'Could not attach the file - download it and attach manually.',
       });
     }
   }
@@ -480,7 +652,7 @@ const SUCCESS_PATTERNS = /(thank you for applying|application (was )?(submitted|
 
 export async function submitForm(): Promise<{ submitted: boolean; reason?: string }> {
   const button = findSubmitButton(document);
-  if (!button) return { submitted: false, reason: 'No submit button found — finish this application manually.' };
+  if (!button) return { submitted: false, reason: 'No submit button found - finish this application manually.' };
   const beforeUrl = location.href;
   button.scrollIntoView({ block: 'center' });
   await sleep(300);

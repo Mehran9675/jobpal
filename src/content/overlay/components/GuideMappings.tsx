@@ -18,7 +18,7 @@ export function GuideMappings() {
         <span>Application fields</span>
       </div>
       {state.mappings.length === 0 ? (
-        <div className="jp-guide-value">No manual field mappings — autofill uses its own detection.</div>
+        <div className="jp-guide-value">No manual field mappings - autofill uses its own detection.</div>
       ) : (
         state.mappings.map(renderMapping)
       )}

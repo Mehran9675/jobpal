@@ -77,7 +77,8 @@ export async function listRecipes(): Promise<SiteRecipe[]> {
 
 /** Builds a stable, human-readable selector for an element the user picked. */
 export function elementSelector(element: Element): string {
-  if (element.id && document.querySelectorAll(`#${CSS.escape(element.id)}`).length === 1) {
+  const doc = element.ownerDocument;
+  if (element.id && doc.querySelectorAll(`#${CSS.escape(element.id)}`).length === 1) {
     return `#${CSS.escape(element.id)}`;
   }
   for (const attribute of ['data-testid', 'data-automation-id', 'data-qa', 'itemprop', 'name']) {
@@ -85,14 +86,14 @@ export function elementSelector(element: Element): string {
     if (!value) continue;
     const candidate = `[${attribute}="${CSS.escape(value)}"]`;
     try {
-      if (document.querySelectorAll(candidate).length === 1) return candidate;
+      if (doc.querySelectorAll(candidate).length === 1) return candidate;
     } catch {
       /* keep walking */
     }
   }
   const parts: string[] = [];
   let node: Element | null = element;
-  while (node && node !== document.body && node !== document.documentElement && parts.length < 6) {
+  while (node && node !== doc.body && node !== doc.documentElement && parts.length < 6) {
     let part = node.tagName.toLowerCase();
     const parent: Element | null = node.parentElement;
     if (parent) {
@@ -103,7 +104,7 @@ export function elementSelector(element: Element): string {
     parts.unshift(part);
     const candidate = parts.join(' > ');
     try {
-      if (document.querySelectorAll(candidate).length === 1) return candidate;
+      if (doc.querySelectorAll(candidate).length === 1) return candidate;
     } catch {
       break;
     }

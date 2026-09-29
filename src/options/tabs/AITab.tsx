@@ -287,7 +287,7 @@ export function AITab({ settings, patchSettings }: { settings: AppSettings; patc
           <div className="grid grid--2">
             <Field
               label="Model"
-              hint={`${options.length} model${options.length === 1 ? '' : 's'} available — the list is refreshed live from the provider when you save or press Refresh.`}
+              hint={`${options.length} model${options.length === 1 ? '' : 's'} available - the list is refreshed live from the provider when you save or press Refresh.`}
               action={
                 <Button size="sm" variant="ghost" icon={<IconRefresh size={13} />} loading={busy === 'models'} onClick={() => void fetchLiveModels(editing.id)}>
                   Refresh
@@ -301,7 +301,7 @@ export function AITab({ settings, patchSettings }: { settings: AppSettings; patc
                 {options.map(renderModelOption)}
               </Select>
             </Field>
-            <Field label="Custom model ID" hint="Overrides the dropdown — useful for brand-new models, snapshots or Azure deployments.">
+            <Field label="Custom model ID" hint="Overrides the dropdown - useful for brand-new models, snapshots or Azure deployments.">
               <Input value={draft.customModel} placeholder={editing.id === 'azure-openai' ? 'deployment name' : 'e.g. deepseek-v4.1'} onChange={(event) => setDraft({ ...draft, customModel: event.target.value })} />
             </Field>
           </div>
@@ -357,11 +357,11 @@ export function AITab({ settings, patchSettings }: { settings: AppSettings; patc
           </Badge>
         </Show>
         <Show if={!status.ready}>
-          <Badge tone="warning">No AI connected — AI features are disabled</Badge>
+          <Badge tone="warning">No AI connected - AI features are disabled</Badge>
         </Show>
       </header>
 
-      <SectionCard title="Generation settings" hint="Applies to every AI call unless a task overrides it. If a call fails, the action stops and reports the provider error — nothing is generated locally.">
+      <SectionCard title="Generation settings" hint="Applies to every AI call unless a task overrides it. If a call fails, the action stops and reports the provider error - nothing is generated locally.">
         <div className="grid grid--4">
           <Field label="Temperature">
             <Input
@@ -478,7 +478,7 @@ export function AITab({ settings, patchSettings }: { settings: AppSettings; patc
             <IconCpu size={16} />
             <div className="list-item__main">
               <div className="list-item__title">Prompts run inside the extension</div>
-              <div className="list-item__meta">JobPal builds every prompt locally and sends it straight to your provider — there is no middleman server.</div>
+              <div className="list-item__meta">JobPal builds every prompt locally and sends it straight to your provider - there is no middleman server.</div>
             </div>
           </div>
           <div className="list-item">

@@ -42,7 +42,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
       const stored = await chrome.storage.local.get(['jobpal.pendingProfile']);
       const pending = stored['jobpal.pendingProfile'] as { profile?: Partial<Profile>; at?: number } | undefined;
       if (pending?.profile && Date.now() - (pending.at ?? 0) < 1000 * 60 * 30) {
-        toast.push('LinkedIn profile captured — press “Apply LinkedIn data” to merge it into your profile.');
+        toast.push('LinkedIn profile captured - press “Apply LinkedIn data” to merge it into your profile.');
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -215,7 +215,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
         <div>
           <h1 className="main__title">My profile</h1>
           <p className="main__subtitle">
-            This is the single source of truth for every document. Keep variants for different role types — JobPal picks the default variant, and you can
+            This is the single source of truth for every document. Keep variants for different role types - JobPal picks the default variant, and you can
             switch per application.
           </p>
         </div>
@@ -267,7 +267,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
               <div>
                 <div className="strong">Parsing needs an AI connection</div>
                 <div className="tiny muted">
-                  {ai.reason ?? 'Connect a provider'} — uploading and pasting still works, but extraction into structured fields stays disabled until then.
+                  {ai.reason ?? 'Connect a provider'} - uploading and pasting still works, but extraction into structured fields stays disabled until then.
                 </div>
               </div>
               <Button size="sm" variant="primary" onClick={() => void sendMessage('app.openOptions', { tab: 'ai' })}>
@@ -351,7 +351,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
           <Field label="Country">
             <Input value={draft.contact.country ?? ''} onChange={(event) => updateContact({ country: event.target.value })} />
           </Field>
-          <Field label="Date of birth" hint="Optional — used only for forms that require it.">
+          <Field label="Date of birth" hint="Optional - used only for forms that require it.">
             <Input value={draft.contact.dateOfBirth ?? ''} onChange={(event) => updateContact({ dateOfBirth: event.target.value })} />
           </Field>
         </div>
@@ -407,7 +407,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
         }
       >
         <Show if={draft.experience.length === 0}>
-          <EmptyState title="No roles yet" text="Add your most recent role first — JobPal lists experience in the order you set." />
+          <EmptyState title="No roles yet" text="Add your most recent role first - JobPal lists experience in the order you set." />
         </Show>
         <div className="col">{draft.experience.map(renderExperience)}</div>
       </SectionCard>
@@ -441,34 +441,34 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
 
       <div className="grid grid--2">
         <SectionCard title="Certifications & languages">
-          <Field label="Certifications" hint="One per line: Name — Issuer — YYYY-MM">
+          <Field label="Certifications" hint="One per line: Name - Issuer - YYYY-MM">
             <Textarea
               rows={4}
-              value={draft.certifications.map((cert) => [cert.name, cert.issuer, cert.date].filter(Boolean).join(' — ')).join('\n')}
+              value={draft.certifications.map((cert) => [cert.name, cert.issuer, cert.date].filter(Boolean).join(' - ')).join('\n')}
               onChange={(event) =>
                 update({
                   certifications: event.target.value
                     .split('\n')
                     .filter(Boolean)
                     .map((line) => {
-                      const [name = '', issuer = '', date = ''] = line.split('—').map((part) => part.trim());
+                      const [name = '', issuer = '', date = ''] = line.split('-').map((part) => part.trim());
                       return { id: uid('cert'), name, issuer, date };
                     }),
                 })
               }
             />
           </Field>
-          <Field label="Languages" hint="One per line: Language — level (native, fluent, professional, intermediate, basic)">
+          <Field label="Languages" hint="One per line: Language - level (native, fluent, professional, intermediate, basic)">
             <Textarea
               rows={3}
-              value={draft.languages.map((language) => `${language.language} — ${language.level}`).join('\n')}
+              value={draft.languages.map((language) => `${language.language} - ${language.level}`).join('\n')}
               onChange={(event) =>
                 update({
                   languages: event.target.value
                     .split('\n')
                     .filter(Boolean)
                     .map((line) => {
-                      const [language = '', level = 'professional'] = line.split('—').map((part) => part.trim().toLowerCase());
+                      const [language = '', level = 'professional'] = line.split('-').map((part) => part.trim().toLowerCase());
                       const allowed = ['native', 'fluent', 'professional', 'intermediate', 'basic'] as const;
                       return { language, level: (allowed.includes(level as never) ? level : 'professional') as Profile['languages'][number]['level'] };
                     }),
@@ -479,34 +479,34 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
         </SectionCard>
 
         <SectionCard title="Projects & awards">
-          <Field label="Projects" hint="One per line: Name — description — url">
+          <Field label="Projects" hint="One per line: Name - description - url">
             <Textarea
               rows={4}
-              value={draft.projects.map((project: ProjectItem) => [project.name, project.description, project.url].filter(Boolean).join(' — ')).join('\n')}
+              value={draft.projects.map((project: ProjectItem) => [project.name, project.description, project.url].filter(Boolean).join(' - ')).join('\n')}
               onChange={(event) =>
                 update({
                   projects: event.target.value
                     .split('\n')
                     .filter(Boolean)
                     .map((line) => {
-                      const [name = '', description = '', url = ''] = line.split('—').map((part) => part.trim());
+                      const [name = '', description = '', url = ''] = line.split('-').map((part) => part.trim());
                       return { id: uid('proj'), name, description, url, highlights: [], skills: [] };
                     }),
                 })
               }
             />
           </Field>
-          <Field label="Awards" hint="One per line: Title — issuer — YYYY">
+          <Field label="Awards" hint="One per line: Title - issuer - YYYY">
             <Textarea
               rows={3}
-              value={draft.awards.map((award) => [award.title, award.issuer, award.date].filter(Boolean).join(' — ')).join('\n')}
+              value={draft.awards.map((award) => [award.title, award.issuer, award.date].filter(Boolean).join(' - ')).join('\n')}
               onChange={(event) =>
                 update({
                   awards: event.target.value
                     .split('\n')
                     .filter(Boolean)
                     .map((line) => {
-                      const [title = '', issuer = '', date = ''] = line.split('—').map((part) => part.trim());
+                      const [title = '', issuer = '', date = ''] = line.split('-').map((part) => part.trim());
                       return { id: uid('award'), title, issuer, date };
                     }),
                 })

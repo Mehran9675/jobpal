@@ -14,6 +14,7 @@ import { findJobByUrl, getApplication, getApplicationByJob, listApplications, li
 import { findApplicationForUrl, findJobForUrl } from '@/lib/applications/match';
 import { getTemplate } from '@/lib/doc/templates';
 import { renderFiles, type RenderedFile } from '@/lib/doc/renderer';
+import { serializeAnswersContent, serializeCoverLetterContent, serializeResumeContent } from '@/lib/doc/content';
 import { analyzeJob, answerQuestions, coverLetter, tailorResume, type TaskContext } from '@/lib/ai/tasks';
 import { buildTaskContext } from './ai-router';
 import { AppError } from '@/lib/errors';
@@ -29,6 +30,8 @@ export interface TailorOptions {
   applicationId?: ID;
   /** Signals detected on the application form. */
   form?: { hasCoverLetterField?: boolean };
+  /** One-off confirmation from the user to generate without a description. */
+  allowNoDescription?: boolean;
   shouldCancel?: () => boolean;
   onProgress?: (message: string) => void;
 }
@@ -82,6 +85,16 @@ export async function tailorForJob(input: ExtractedJob, options: TailorOptions =
     if (options.shouldCancel?.()) throw new AppError('Stopped. Nothing else was generated.', 'CANCELLED');
   };
   const progress = (message: string) => options.onProgress?.(message);
+
+  // Tailoring needs something to tailor against. The overlay asks the user to
+  // confirm (which sets allowNoDescription), and the management page has a
+  // persistent override for people who want it permanently.
+  if (job.description.trim().length < 80 && settings.document.allowGenerateWithoutDescription !== true && options.allowNoDescription !== true) {
+    throw new AppError(
+      'No job description was found. Pick it on the page or paste it in the JobPal overlay first (or confirm the override it offers).',
+      'DESCRIPTION_REQUIRED',
+    );
+  }
 
   guard();
   if (!job.analysis || options.forceAnalysis) {
@@ -151,14 +164,20 @@ export async function tailorForJob(input: ExtractedJob, options: TailorOptions =
 
   progress('Writing your resume…');
   const tailored = await tailorResume(taskContext, job, analysis);
+  if (settings.document.headlineMode === 'profile') {
+    tailored.contact = { ...tailored.contact, headline: profile.contact.headline };
+  }
+  // The letter and answers build on the already-tailored profile, so the
+  // job-aligned headline and summary feed every document.
+  const tailoredContext: TaskContext = { ...taskContext, profile: tailored };
   let letterText: string | undefined;
   if (includeCoverLetter) {
     guard();
     progress('Writing your cover letter…');
-    letterText = await coverLetter(taskContext, job, analysis);
+    letterText = await coverLetter(tailoredContext, job, analysis);
   }
   guard();
-  const answeredQuestions = includeAnswers ? await answerQuestionsWithProgress(taskContext, job, questions, progress) : questions;
+  const answeredQuestions = includeAnswers ? await answerQuestionsWithProgress(tailoredContext, job, questions, progress) : questions;
 
   guard();
   progress('Rendering documents…');
@@ -175,7 +194,11 @@ export async function tailorForJob(input: ExtractedJob, options: TailorOptions =
     analysis,
   });
 
-  const documents = await storeRendered(rendered, application.id, job);
+  const documents = await storeRendered(rendered, application.id, job, {
+    resume: serializeResumeContent(tailored),
+    ...(letterText ? { cover_letter: serializeCoverLetterContent(letterText) } : {}),
+    ...(answeredQuestions.length > 0 ? { answers: serializeAnswersContent(answeredQuestions) } : {}),
+  });
   progress('Saving files…');
   application = {
     ...application,
@@ -202,7 +225,12 @@ async function answerQuestionsWithProgress(
   return answerQuestions(context, job, questions);
 }
 
-async function storeRendered(files: RenderedFile[], applicationId: ID, job: JobRecord): Promise<DocumentRecord[]> {
+async function storeRendered(
+  files: RenderedFile[],
+  applicationId: ID,
+  job: JobRecord,
+  contentByKind: Partial<Record<DocKind, string>> = {},
+): Promise<DocumentRecord[]> {
   const documents: DocumentRecord[] = [];
   for (const file of files) {
     const record: DocumentRecord = {
@@ -220,6 +248,7 @@ async function storeRendered(files: RenderedFile[], applicationId: ID, job: JobR
       createdAt: Date.now(),
       blob: file.blob,
       textPreview: file.preview?.slice(0, 4000),
+      content: contentByKind[file.kind],
     };
     await saveDocument(record);
     documents.push(record);

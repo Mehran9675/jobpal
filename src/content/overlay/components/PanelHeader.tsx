@@ -1,9 +1,12 @@
 import type { RefObject } from 'react';
-import { patchOverlay } from '../store';
+import { patchOverlay, useOverlayState } from '../store';
+import { setShowOverlay } from '../actions';
 import { Icon } from './Icon';
 import { SizeControls } from './SizeControls';
 
 export function PanelHeader({ handleRef }: { handleRef: RefObject<HTMLDivElement> }) {
+  const state = useOverlayState();
+
   return (
     <div className="jp-header" ref={handleRef}>
       <div className="jp-brand">
@@ -13,6 +16,18 @@ export function PanelHeader({ handleRef }: { handleRef: RefObject<HTMLDivElement
         <span>JobPal</span>
       </div>
       <div className="jp-header-right">
+        <button
+          type="button"
+          className="jp-switch"
+          role="switch"
+          aria-checked={state.showOverlay}
+          title="Hide the overlay. Turn it back on from the JobPal popup."
+          onClick={() => void setShowOverlay(!state.showOverlay)}
+        >
+          <span className="jp-switch-track">
+            <span className="jp-switch-thumb" />
+          </span>
+        </button>
         <SizeControls />
         <span className="jp-drag-hint" title="Drag to move">
           <Icon name="grip" size={13} />

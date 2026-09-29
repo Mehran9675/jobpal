@@ -29,7 +29,7 @@ export function AnswersSection() {
       </div>
       <Show if={!hasAnswers}>
         <div className="jp-guide-value">
-          No written answers yet. They appear here after JobPal answers screening questions — and stay available to copy even if autofill cannot place them.
+          No written answers yet. They appear here after JobPal answers screening questions - and stay available to copy even if autofill cannot place them.
         </div>
       </Show>
       <Show if={hasAnswers}>{state.answers.map(renderAnswer)}</Show>

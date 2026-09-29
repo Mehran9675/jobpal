@@ -1,5 +1,5 @@
 import type { EducationItem, ExtractedJob, JobSite, Profile, WorkExperience } from '@/types';
-import { jobDescriptionText, mainContentElement, metaContent, stripHtml } from './readability';
+import { jobDescriptionText, looksLikeJobDescription, mainContentElement, metaContent, stripHtml } from './readability';
 import { normalizeWhitespace, uid } from '@/lib/utils';
 
 export function pickText(root: ParentNode, selectors: string[]): string {
@@ -311,7 +311,10 @@ export function extractJobFromDocument(doc: Document, url: string): ExtractedJob
 
   const location = ld?.location || pickText(doc, adapter.locationSelectors);
   const salary = ld?.salary || pickText(doc, adapter.salarySelectors ?? []);
-  const description = ld?.description && ld.description.length > 400 ? ld.description : jobDescriptionText(doc) || (ld?.description ?? '');
+  // Page text only counts as a description when it reads like prose; form
+  // labels and select options must never be picked up as the posting.
+  const pageDescription = jobDescriptionText(doc);
+  const description = ld?.description && ld.description.length > 120 ? ld.description : looksLikeJobDescription(pageDescription) ? pageDescription : '';
   if (!description || description.length < 120) return null;
 
   const remote = /remote|anywhere|distributed/i.test(`${location ?? ''} ${title} ${description.slice(0, 800)}`);
@@ -373,7 +376,7 @@ export function findJobPosting(doc: Document): JobPostingLd | null {
         const { minValue, maxValue, value, unitText } = salaryRecord.value;
         const unit = unitText ? `/${unitText.toLowerCase()}` : '';
         const currency = salaryRecord.currency ? `${salaryRecord.currency} ` : '';
-        if (minValue && maxValue) salary = `${currency}${minValue.toLocaleString()} – ${maxValue.toLocaleString()}${unit}`;
+        if (minValue && maxValue) salary = `${currency}${minValue.toLocaleString()} - ${maxValue.toLocaleString()}${unit}`;
         else if (value) salary = `${currency}${value.toLocaleString()}${unit}`;
       }
       const remoteType = (record.jobLocationType as string | undefined) ?? undefined;
@@ -393,7 +396,7 @@ export function findJobPosting(doc: Document): JobPostingLd | null {
 }
 
 function extractRequirementLines(description: string): string[] {
-  const lines = description.split(/\r?\n/).map((line) => normalizeWhitespace(line.replace(/^[-•*·–—]\s*/, '')));
+  const lines = description.split(/\r?\n/).map((line) => normalizeWhitespace(line.replace(/^[-•*·]\s*/, '')));
   const inRequirements = lines.filter((line) => line.length > 12 && line.length < 220 && /(experience|proficien|knowledge|degree|years?|skill|familiar|ability|require|must|bachelor|master|expert)/i.test(line));
   return [...new Set(inRequirements)].slice(0, 20);
 }
@@ -414,8 +417,8 @@ export function extractLinkedInProfile(doc: Document): Partial<Profile> {
     company: entry.subtitle || entry.secondTitle || '',
     title: entry.title,
     location: entry.meta,
-    start: entry.dates.split(/\s*[-–]\s*/)[0] ?? '',
-    end: entry.dates.split(/\s*[-–]\s*/)[1],
+    start: entry.dates.split(/\s*[--]\s*/)[0] ?? '',
+    end: entry.dates.split(/\s*[--]\s*/)[1],
     current: /present/i.test(entry.dates),
     description: entry.description,
     highlights: entry.description ? entry.description.split(/(?<=\.)\s+/).filter((s) => s.length > 30).slice(0, 5) : [],
@@ -427,8 +430,8 @@ export function extractLinkedInProfile(doc: Document): Partial<Profile> {
     school: entry.title,
     degree: entry.subtitle,
     field: entry.secondTitle,
-    start: entry.dates.split(/\s*[-–]\s*/)[0] ?? '',
-    end: entry.dates.split(/\s*[-–]\s*/)[1],
+    start: entry.dates.split(/\s*[--]\s*/)[0] ?? '',
+    end: entry.dates.split(/\s*[--]\s*/)[1],
     highlights: [],
   }));
 

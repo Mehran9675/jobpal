@@ -25,7 +25,7 @@ export function DocumentPreviewModal({
         </Show>
         <Show if={!isEmbedded}>
           <pre className="code-block" style={{ maxHeight: '70vh' }}>
-            {document.textPreview ?? 'Preview not available — download the file to view it.'}
+            {document.textPreview ?? 'Preview not available - download the file to view it.'}
           </pre>
         </Show>
       </div>

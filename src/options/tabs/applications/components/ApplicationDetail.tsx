@@ -99,7 +99,7 @@ export function ApplicationDetail({
             icon={<IconRefresh size={15} />}
             loading={busy === 'regen'}
             disabled={!aiReady}
-            title={aiReady ? 'Regenerate documents with your current template and profile' : `Connect an AI provider first — ${aiReason ?? ''}`}
+            title={aiReady ? 'Regenerate documents with your current template and profile' : `Connect an AI provider first - ${aiReason ?? ''}`}
             onClick={() => onRegenerate(application)}
           >
             Regenerate
@@ -111,7 +111,7 @@ export function ApplicationDetail({
       </header>
 
       <div className="grid grid--2">
-        <SectionCard title="Status" hint="Keep this updated — JobPal uses it for follow-ups and duplicate detection.">
+        <SectionCard title="Status" hint="Keep this updated - JobPal uses it for follow-ups and duplicate detection.">
           <Field label="Pipeline stage">
             <Select className="status-select" value={application.status} onChange={(event) => onStatus(application, event.target.value as ApplicationStatus)}>
               {APPLICATION_STATUSES.map(renderStatusOption)}
@@ -161,7 +161,7 @@ export function ApplicationDetail({
         </Show>
       </SectionCard>
 
-      <SectionCard title="Written answers" hint="Exactly what was submitted on the form — copy any answer, or all of them, for your own records or manual applications.">
+      <SectionCard title="Written answers" hint="Exactly what was submitted on the form - copy any answer, or all of them, for your own records or manual applications.">
         <Show if={application.answers.length === 0}>
           <EmptyState icon={<IconNote size={20} />} title="No written answers" text="Screening answers appear here after JobPal fills a form with questions." />
         </Show>

@@ -61,7 +61,7 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
       await saveDocument(record);
       await loadUploaded();
       await patchDocument(kind === 'resume' ? { uploadedResumeId: record.id, fileSource: 'uploaded' } : { uploadedCoverLetterId: record.id, fileSource: 'uploaded' });
-      toast.success(`${file.name} saved — JobPal will attach your own file.`);
+      toast.success(`${file.name} saved - JobPal will attach your own file.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error));
     }
@@ -193,7 +193,7 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
         <div>
           <h1 className="main__title">Resume designs</h1>
           <p className="main__subtitle">
-            Pick a layout, accent colour and section order. Changes apply to every document generated from now on — existing files keep their original design.
+            Pick a layout, accent colour and section order. Changes apply to every document generated from now on - existing files keep their original design.
           </p>
         </div>
         <div className="row">
@@ -267,14 +267,52 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
             </Field>
           </div>
           <Field
+            label="Headline (the subtitle under your name)"
+            hint="Tailored rewrites it for each posting at your real level - it never copies the posting's seniority or claims skills you did not report. Your profile headline stays untouched. Choose “My profile headline” to always print your own wording verbatim."
+          >
+            <Select value={document.headlineMode} onChange={(event) => void patchDocument({ headlineMode: event.target.value })}>
+              <option value="tailored">Tailor per job (recommended)</option>
+              <option value="profile">Always use my profile headline</option>
+            </Select>
+          </Field>
+          <Field
+            label="Resume wording"
+            hint="Left reworks your headline, summary and experience descriptions to match the job. Right keeps your own wording almost verbatim. Either way JobPal never adds experience, skills or seniority you did not report."
+          >
+            <div className="row" style={{ gap: 10, alignItems: 'center' }}>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={document.faithfulness ?? 60}
+                onChange={(event) => void patchDocument({ faithfulness: Number(event.target.value) })}
+                style={{ flex: 1, accentColor: 'var(--accent)' }}
+              />
+              <span className="tiny muted" style={{ minWidth: 66, textAlign: 'right' }}>
+                {(document.faithfulness ?? 60) >= 70 ? 'Exact' : (document.faithfulness ?? 60) >= 40 ? 'Balanced' : 'Reworded'}
+              </span>
+            </div>
+          </Field>
+          <Field
+            label="Missing job description"
+            hint="By default documents cannot be generated without a job description. Leave this off and the overlay simply asks you to confirm each time you try; turn it on to allow generation without any prompt."
+          >
+            <Toggle
+              checked={document.allowGenerateWithoutDescription}
+              onChange={(allowGenerateWithoutDescription) => void patchDocument({ allowGenerateWithoutDescription })}
+              label="Allow generating without a description"
+            />
+          </Field>
+          <Field
             label="File name pattern"
-            hint="Default: {{name}}-{{kind}} � job-agnostic file names. Add {{company}}, {{role}}, {{date}} or {{template}} only if you want them."
+            hint="Default: {{name}}-{{kind}} - job-agnostic file names. Add {{company}}, {{role}}, {{date}} or {{template}} only if you want them."
           >
             <Input value={document.fileNamePattern} onChange={(event) => void patchDocument({ fileNamePattern: event.target.value })} />
           </Field>
           <Field label="Output format" hint="One file per document. PDF is the default and the safest choice for applications; pick another only if the employer requires it.">
             <Select value={document.outputFormat} onChange={(event) => void patchDocument({ outputFormat: event.target.value })}>
-              <option value="pdf">PDF — recommended, ATS-safe</option>
+              <option value="pdf">PDF - recommended, ATS-safe</option>
               <option value="docx">Word document (.docx)</option>
               <option value="html">Web page (.html)</option>
               <option value="md">Markdown (.md)</option>

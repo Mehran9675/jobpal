@@ -6,13 +6,13 @@ export const TASK_LABELS: Record<TaskId, { label: string; description: string }>
   tailorResume: { label: 'Tailor resume', description: 'Rewrite the resume for one specific posting.' },
   coverLetter: { label: 'Cover letter', description: 'Write a tailored cover letter.' },
   answerQuestions: { label: 'Answer application questions', description: 'Draft answers to screening questions.' },
-  matchScore: { label: 'Score job match', description: 'Produce a 0–100 fit score with reasoning.' },
+  matchScore: { label: 'Score job match', description: 'Produce a 0-100 fit score with reasoning.' },
 };
 
 export const SYSTEM_PROMPT_BASE = `You are JobPal, an expert career strategist, ATS (Applicant Tracking System) optimisation specialist and professional resume writer.
 
 Hard rules you must always follow:
-1. NEVER invent employers, job titles, dates, degrees, certifications, tools or metrics that are not present in the candidate data provided. You may rephrase, reorder, prioritise and re-emphasise truthfully.
+1. NEVER invent or upgrade employers, job titles, seniority levels (Junior, Senior, Lead, Staff, Principal, Head, Manager, Expert or similar), dates, degrees, certifications, tools or metrics that are not present in the candidate data provided. The candidate's level is whatever their own data shows - never copy the posting's seniority onto them. You may rephrase, reorder, prioritise and re-emphasise truthfully.
 2. Mirror the vocabulary of the job description whenever it is truthful for the candidate, so ATS keyword matching succeeds.
 3. Write compact, high-signal content. Resume bullets start with a strong action verb and state measurable impact when the source data supports it.
 4. Resumes never use first-person pronouns. Cover letters and free-text answers may use "I".
@@ -95,13 +95,14 @@ Tailoring brief:
 - Must-prove themes: {{highlightBullets}}
 
 Rules:
-1. Produce a 2–4 sentence summary aimed at this specific role.
-2. For each work experience: keep company/title/dates; rewrite the description into one context sentence and 3–5 bullets. Put the most relevant achievements first. Use the posting's vocabulary when truthful.
-3. Reorder and regroup skills so the posting's requirements appear first. Do not add skills the candidate does not have.
-4. Elevate projects, certifications and education entries that support this application.
-5. Keep every bullet under 30 words.
+1. Produce a headline of 4-10 words built from the candidate's real most recent role and their genuine specialisations, e.g. "Full-Stack Developer | React · Node.js · TypeScript". Align the wording with the posting only at the same level: never copy seniority words from the posting (Senior, Lead, Staff, Principal, Head, Manager, Expert) and never claim skills the candidate lacks.
+2. Produce a 2-4 sentence summary aimed at this specific role.
+3. For each work experience: keep company/title/dates exactly as reported; rewrite the description into one context sentence and 3-5 bullets. Put the most relevant achievements first. Use the posting's vocabulary when truthful.
+4. Reorder and regroup skills so the posting's requirements appear first. Do not add skills the candidate does not have.
+5. Elevate projects, certifications and education entries that support this application.
+6. Keep every bullet under 30 words.
 
-Return JSON in exactly the same shape as the candidate profile below (same keys, IDs preserved).
+Return JSON in exactly the same shape as the candidate profile below (same keys, IDs preserved), plus a top-level "headline" string following rule 1.
 
 CANDIDATE PROFILE:
 """
@@ -124,11 +125,11 @@ JOB POSTING:
 
 Structure (plain text, no markdown, no address block, no placeholders like [Company]):
 1. Hook: why this company and this role specifically, referencing something concrete from the posting.
-2. Proof: 2–3 short paragraphs mapping the candidate's strongest, most relevant achievements to the posting's needs. Use numbers where the profile supports them.
+2. Proof: 2-3 short paragraphs mapping the candidate's strongest, most relevant achievements to the posting's needs. Use numbers where the profile supports them.
 3. Fit: one paragraph on how the candidate works / what they'd bring.
 4. Close: confident call to action.
 
-Length: 250–350 words. Never invent facts. If a fact is missing, write around it.
+Length: 250-350 words. Never invent facts. If a fact is missing, write around it.
 
 CANDIDATE PROFILE:
 """
@@ -147,7 +148,7 @@ Target role: {{jobTitle}} at {{company}}
 Return JSON: { "answers": [{ "id": "<question id>", "answer": "<answer>" }] }
 
 Rules:
-- 40–120 words per answer unless the question implies shorter.
+- 40-120 words per answer unless the question implies shorter.
 - First person, specific, no generic filler, never invent facts.
 - Reference the candidate's real experience and the role's requirements.
 - If a question is a salary expectation, use the candidate's stated expectation. If unknown, give a researched-sounding range with a note that it is negotiable.
@@ -206,8 +207,23 @@ const TONE_LINES: Record<PromptConfig['tone'], string> = {
   warm: 'Tone: personable and warm, like a trusted colleague.',
 };
 
-export function buildSystemPrompt(config: PromptConfig, task: TaskId): string {
+const HARD_TRUTH_RULES =
+  'HARD TRUTH RULES (never relax these, whatever the wording level says): never invent, infer or upgrade employers, job titles, seniority levels (Junior, Senior, Lead, Staff, Principal, Head, Manager, Expert), dates, education, certifications, tools, skills, metrics or achievements. Only rephrase, reorder, trim and emphasise information that is already present in the candidate profile. If a job requirement is absent from the candidate data, leave it out instead of adding it.';
+
+/** The wording level chosen on the resume-tailoring slider, as a prompt block. */
+export function faithfulnessInstruction(faithfulness: number): string {
+  if (faithfulness >= 70) {
+    return `${HARD_TRUTH_RULES}\nWording level: EXACT. Stay very close to the candidate's own words: keep the headline, summary and experience descriptions almost verbatim and only trim, reorder and re-emphasise. Mirror the posting's vocabulary only for skills and tools that already exist in the profile. Never rewrite job titles.`;
+  }
+  if (faithfulness >= 40) {
+    return `${HARD_TRUTH_RULES}\nWording level: BALANCED. Keep the candidate's own job titles and headline wording unchanged. You may rewrite the summary and the experience descriptions to echo the posting's language, always within the facts provided.`;
+  }
+  return `${HARD_TRUTH_RULES}\nWording level: REWORDED. You may rephrase the headline and job titles into a truthful equivalent of the candidate's real role (same level and scope) and rewrite the summary and experience descriptions as strongly as possible for this posting. Higher seniority than the candidate's own data shows is never allowed.`;
+}
+
+export function buildSystemPrompt(config: PromptConfig, task: TaskId, faithfulness?: number): string {
   const parts = [SYSTEM_PROMPT_BASE, TONE_LINES[config.tone] ?? ''];
+  if (task === 'tailorResume' && typeof faithfulness === 'number') parts.push(faithfulnessInstruction(faithfulness));
   if (config.writingStyle.trim()) parts.push(`Writing style: ${config.writingStyle.trim()}`);
   if (config.avoidWords.length > 0) parts.push(`Never use these words or phrases: ${config.avoidWords.join(', ')}.`);
   if (config.emphasize.length > 0) parts.push(`Emphasise these themes where truthful: ${config.emphasize.join(', ')}.`);

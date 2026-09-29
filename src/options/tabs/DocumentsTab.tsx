@@ -83,7 +83,7 @@ export function DocumentsTab({
 
   const renderApplicationOption = (application: ApplicationRecord) => (
     <option key={application.id} value={application.id}>
-      {application.jobTitle} — {application.company}
+      {application.jobTitle} - {application.company}
     </option>
   );
 
@@ -133,7 +133,7 @@ export function DocumentsTab({
           <EmptyState
             icon={<IconFile size={22} />}
             title="Nothing here yet"
-            text="Generate documents from any job posting — they will be archived here with the application they belong to."
+            text="Generate documents from any job posting - they will be archived here with the application they belong to."
           />
         </Show>
         <Show if={filtered.length > 0}>
@@ -165,7 +165,7 @@ export function DocumentsTab({
           </Field>
           <Field label="Oldest">
             <div className="strong">
-              {(documents ?? []).length > 0 ? relativeTime(Math.min(...(documents ?? []).map((document) => document.createdAt))) : '—'}
+              {(documents ?? []).length > 0 ? relativeTime(Math.min(...(documents ?? []).map((document) => document.createdAt))) : '-'}
             </div>
           </Field>
         </div>

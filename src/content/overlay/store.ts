@@ -9,6 +9,9 @@ export interface OverlayPosition {
 export interface OverlayState {
   context: PageContext;
   job: ExtractedJob | null;
+  /** Detection health: issues that need manual work (drives the FAB colour). */
+  health: { ok: boolean; issues: string[] };
+  faithfulness: number;
   documents: DocumentRecord[];
   applicationId?: string;
   busy: boolean;
@@ -22,10 +25,9 @@ export interface OverlayState {
   picking: boolean;
   picks: Record<string, { value: string; selector: string }>;
   mappings: { selector: string; key: string; label?: string }[];
-  recipeSaved: boolean;
   filesLoading: boolean;
   answers: { question: string; answer: string; required?: boolean }[];
-  pastedText: string;
+  pastedFields: Record<string, string>;
   openDocMenu?: string;
   fileSource: 'generated' | 'uploaded';
   uploaded: DocumentRecord[];
@@ -34,9 +36,24 @@ export interface OverlayState {
   view: 'main' | 'documents';
   allDocuments: DocumentRecord[];
   allDocsLoading: boolean;
+  jobSource: 'page' | 'stored' | 'manual' | 'none';
+  descriptionWords: number;
+  allowNoDescription: boolean;
+  confirmNoDescription: boolean;
+  showDescription: boolean;
+  jobPickerOpen: boolean;
+  recentJobs: { id: string; title: string; company: string; url: string; words: number; scrapedAt: number }[];
+  recentJobsLoading: boolean;
   panelOpen: boolean;
+  showOverlay: boolean;
   scale: number;
   positionVersion: number;
+  /* Content editor (opened from a document row). */
+  editorDocumentId?: string;
+  editorLoading: boolean;
+  editorBusy: boolean;
+  editorError?: string;
+  editorOriginal?: string;
 }
 
 export const OVERLAY_FONT =
@@ -53,6 +70,8 @@ export const SCALE_STEP = 0.15;
 const initialState: OverlayState = {
   context: { url: typeof location !== 'undefined' ? location.href : '', title: '', site: 'other', hasJob: false, hasApplicationForm: false },
   job: null,
+  health: { ok: true, issues: [] },
+  faithfulness: 60,
   documents: [],
   busy: false,
   status: '',
@@ -64,10 +83,9 @@ const initialState: OverlayState = {
   picking: false,
   picks: {},
   mappings: [],
-  recipeSaved: false,
   filesLoading: false,
   answers: [],
-  pastedText: '',
+  pastedFields: {},
   fileSource: 'generated',
   uploaded: [],
   tokensToday: 0,
@@ -75,9 +93,20 @@ const initialState: OverlayState = {
   view: 'main',
   allDocuments: [],
   allDocsLoading: false,
+  jobSource: 'none',
+  descriptionWords: 0,
+  allowNoDescription: false,
+  confirmNoDescription: false,
+  showDescription: false,
+  jobPickerOpen: false,
+  recentJobs: [],
+  recentJobsLoading: false,
   panelOpen: false,
+  showOverlay: true,
   scale: 1,
   positionVersion: 0,
+  editorLoading: false,
+  editorBusy: false,
 };
 
 let state: OverlayState = initialState;

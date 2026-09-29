@@ -82,9 +82,9 @@ function sectionHtml(resume: ResumeJson, section: SectionId, timeline: boolean):
           )
           .join('');
       case 'certifications':
-        return `<ul>${resume.certificates.map((cert) => `<li>${escapeHtml(cert.name)}${cert.issuer ? ` — ${escapeHtml(cert.issuer)}` : ''}${cert.date ? ` (${cert.date.slice(0, 4)})` : ''}</li>`).join('')}</ul>`;
+        return `<ul>${resume.certificates.map((cert) => `<li>${escapeHtml(cert.name)}${cert.issuer ? ` - ${escapeHtml(cert.issuer)}` : ''}${cert.date ? ` (${cert.date.slice(0, 4)})` : ''}</li>`).join('')}</ul>`;
       case 'awards':
-        return `<ul>${resume.awards.map((award) => `<li>${escapeHtml(award.title)}${award.awarder ? ` — ${escapeHtml(award.awarder)}` : ''}</li>`).join('')}</ul>`;
+        return `<ul>${resume.awards.map((award) => `<li>${escapeHtml(award.title)}${award.awarder ? ` - ${escapeHtml(award.awarder)}` : ''}</li>`).join('')}</ul>`;
       case 'languages':
         return `<ul class="inline">${resume.languages.map((language) => `<li>${escapeHtml(language.language)} (${escapeHtml(language.fluency)})</li>`).join('')}</ul>`;
       default:
@@ -130,7 +130,7 @@ export function renderResumeHtml(resume: ResumeJson, template: ResumeTemplate, s
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${escapeHtml(resume.basics.name)} — Resume</title>
+<title>${escapeHtml(resume.basics.name)} - Resume</title>
 <meta name="generator" content="JobPal" />
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
@@ -211,7 +211,7 @@ export function renderCoverLetterHtml(resume: ResumeJson, template: ResumeTempla
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>${escapeHtml(resume.basics.name)} — Cover Letter</title>
+<title>${escapeHtml(resume.basics.name)} - Cover Letter</title>
 <style>
   :root { --accent: ${color}; --text: #14161c; --muted: #5b6270; }
   body { margin: 0; background: #f3f4f8; color: var(--text); font-family: ${fontStack(template)}; }

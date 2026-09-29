@@ -143,7 +143,7 @@ h1{font-size:20pt;margin:0 0 2px}h2{font-size:11.5pt;color:${settings.accentOver
 </style></head><body><div class="page"><h1>Answers</h1><div class="meta">${escapeHtml(ownerName)}</div>${sections
       .map((section) => `<h2>${escapeHtml(section.heading)}</h2><p>${escapeHtml(section.lines[0])}</p>`)
       .join('')}</div></body></html>`;
-    const plain: PlainDoc = { title: `${ownerName} — Answers`, sections: sections.map((section) => ({ heading: section.heading, lines: section.lines })) };
+    const plain: PlainDoc = { title: `${ownerName} - Answers`, sections: sections.map((section) => ({ heading: section.heading, lines: section.lines })) };
     switch (format) {
       case 'pdf':
         return finish(bytesToBlob(await renderPlainPdf(plain, template, settings, resume.basics), MIME.pdf), html);

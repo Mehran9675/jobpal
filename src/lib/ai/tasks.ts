@@ -10,6 +10,7 @@ import type {
 } from '@/types';
 import { buildSystemPrompt, renderTemplate, taskTemplate } from './prompts';
 import { computeMatch, localAnalysis, profileSkillSet, profileSeniority, profileToText } from '@/lib/job/match';
+import { buildLocalHeadline, sanitizeHeadline } from './headline';
 import { AppError } from '@/lib/errors';
 import { parseLooseJson, uid } from '@/lib/utils';
 
@@ -20,6 +21,8 @@ export interface TaskContext {
   /** Always present: AI-powered features are gated on a connection before they get here. */
   chat: ChatRunner;
   profile: Profile;
+  /** Resume wording level from the settings (0 = reworked, 100 = exact). */
+  faithfulness?: number;
 }
 
 export interface JobLike {
@@ -58,14 +61,14 @@ async function runJsonTask<T>(
   vars: Record<string, string>,
 ): Promise<T> {
   const messages: ChatMessage[] = [
-    { role: 'system', content: buildSystemPrompt(ctx.config, task) },
+    { role: 'system', content: buildSystemPrompt(ctx.config, task, ctx.faithfulness) },
     { role: 'user', content: renderTemplate(template, vars) },
   ];
   const result = await ctx.chat({ messages, json: true });
   const parsed = parseLooseJson<T>(result.text);
   if (parsed === null) {
     throw new AppError(
-      `The AI returned a response that could not be parsed for “${task}”. Nothing was saved — press the action again to retry.`,
+      `The AI returned a response that could not be parsed for “${task}”. Nothing was saved - press the action again to retry.`,
       'AI_ERROR',
     );
   }
@@ -79,13 +82,13 @@ async function runTextTask(
   vars: Record<string, string>,
 ): Promise<string> {
   const messages: ChatMessage[] = [
-    { role: 'system', content: buildSystemPrompt(ctx.config, task) },
+    { role: 'system', content: buildSystemPrompt(ctx.config, task, ctx.faithfulness) },
     { role: 'user', content: renderTemplate(template, vars) },
   ];
   const result = await ctx.chat({ messages });
   const text = result.text.trim().replace(/^```[a-z]*\n?/i, '').replace(/```$/, '').trim();
   if (!text) {
-    throw new AppError(`The AI returned an empty response for “${task}”. Nothing was saved — press the action again to retry.`, 'AI_ERROR');
+    throw new AppError(`The AI returned an empty response for “${task}”. Nothing was saved - press the action again to retry.`, 'AI_ERROR');
   }
   return text;
 }
@@ -136,10 +139,11 @@ export async function matchScore(ctx: TaskContext, job: JobLike): Promise<MatchR
 /**
  * Rewrites the resume for a specific job. Every rewritten field comes from the
  * AI; when a field is missing from the response the original profile value is
- * kept untouched (never locally generated prose).
+ * kept untouched (never locally generated prose). The headline is always
+ * aimed at the target role so a stale profile headline cannot leak through.
  */
 export async function tailorResume(ctx: TaskContext, job: JobLike, analysis: JobAnalysis): Promise<Profile> {
-  const parsed = await runJsonTask<Partial<Profile>>(ctx, 'tailorResume', taskTemplate(ctx.config, 'tailorResume'), {
+  const parsed = await runJsonTask<Partial<Profile> & { headline?: string }>(ctx, 'tailorResume', taskTemplate(ctx.config, 'tailorResume'), {
     jobTitle: job.title,
     company: job.company,
     seniority: analysis.seniority,
@@ -151,8 +155,11 @@ export async function tailorResume(ctx: TaskContext, job: JobLike, analysis: Job
     jobDescription: job.description,
   });
 
+  const headline = sanitizeHeadline(parsed.headline) ?? sanitizeHeadline(parsed.contact?.headline) ?? buildLocalHeadline(ctx.profile, analysis);
+
   return {
     ...ctx.profile,
+    contact: { ...ctx.profile.contact, headline },
     summary: typeof parsed.summary === 'string' && parsed.summary.trim().length > 40 ? parsed.summary.trim() : ctx.profile.summary,
     skills: Array.isArray(parsed.skills) && parsed.skills.some((group) => group?.items?.length) ? parsed.skills : ctx.profile.skills,
     experience:

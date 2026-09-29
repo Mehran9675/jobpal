@@ -3,6 +3,8 @@ import { getOverlayState, OVERLAY_FONT, useOverlayState } from '../store';
 import { closeAllMenus } from '../actions';
 import { Fab } from './Fab';
 import { Panel } from './Panel';
+import { EditorOverlay } from './EditorOverlay';
+import { OverlayErrorBoundary } from './OverlayErrorBoundary';
 import { Show } from '@/ui/components';
 
 export function OverlayApp() {
@@ -21,14 +23,21 @@ export function OverlayApp() {
     };
     node.addEventListener('click', handler, true);
     return () => node.removeEventListener('click', handler, true);
-  }, []);
+  }, [state.showOverlay]);
 
   return (
-    <div className="jp-root" ref={rootRef} style={{ fontFamily: OVERLAY_FONT }}>
-      <Fab />
-      <Show if={state.panelOpen}>
-        <Panel />
-      </Show>
-    </div>
+    <Show if={state.showOverlay}>
+      <div className="jp-root" ref={rootRef} style={{ fontFamily: OVERLAY_FONT }}>
+        <OverlayErrorBoundary>
+          <Fab />
+          <Show if={state.panelOpen}>
+            <Panel />
+          </Show>
+          <Show if={Boolean(state.editorDocumentId)}>
+            <EditorOverlay />
+          </Show>
+        </OverlayErrorBoundary>
+      </div>
+    </Show>
   );
 }

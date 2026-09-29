@@ -188,7 +188,7 @@ export async function renderResumeDocx(resume: ResumeJson, template: ResumeTempl
             new Paragraph({
               bullet: { level: 0 },
               spacing: { after: 20 },
-              children: [new TextRun({ text: `${cert.name}${cert.issuer ? ` — ${cert.issuer}` : ''}${cert.date ? ` (${cert.date.slice(0, 4)})` : ''}`, size: typo.size })],
+              children: [new TextRun({ text: `${cert.name}${cert.issuer ? ` - ${cert.issuer}` : ''}${cert.date ? ` (${cert.date.slice(0, 4)})` : ''}`, size: typo.size })],
             }),
           );
         }
@@ -199,7 +199,7 @@ export async function renderResumeDocx(resume: ResumeJson, template: ResumeTempl
             new Paragraph({
               bullet: { level: 0 },
               spacing: { after: 20 },
-              children: [new TextRun({ text: `${award.title}${award.awarder ? ` — ${award.awarder}` : ''}`, size: typo.size })],
+              children: [new TextRun({ text: `${award.title}${award.awarder ? ` - ${award.awarder}` : ''}`, size: typo.size })],
             }),
           );
         }
@@ -221,7 +221,7 @@ export async function renderResumeDocx(resume: ResumeJson, template: ResumeTempl
 
   const document = new Document({
     creator: 'JobPal',
-    title: `${resume.basics.name} — Resume`,
+    title: `${resume.basics.name} - Resume`,
     styles: {
       default: {
         document: { run: { font: 'Calibri', size: typo.size } },
@@ -307,7 +307,7 @@ export async function renderCoverLetterDocx(
       }),
     );
   }
-  const document = new Document({ creator: 'JobPal', title: `${resume.basics.name} — Cover Letter`, sections: [{ children }] });
+  const document = new Document({ creator: 'JobPal', title: `${resume.basics.name} - Cover Letter`, sections: [{ children }] });
   const base64 = await Packer.toBase64String(document);
   return base64ToUint8(base64);
 }

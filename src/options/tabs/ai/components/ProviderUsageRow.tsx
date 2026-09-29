@@ -10,7 +10,7 @@ export function ProviderUsageRow({ providerId, record }: { providerId: string; r
       <td>{record.errors}</td>
       <td>{formatTokens(record.promptTokens)}</td>
       <td>{formatTokens(record.completionTokens)}</td>
-      <td className="muted small">{record.lastAt ? new Date(record.lastAt).toLocaleString() : '—'}</td>
+      <td className="muted small">{record.lastAt ? new Date(record.lastAt).toLocaleString() : '-'}</td>
     </tr>
   );
 }

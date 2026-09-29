@@ -3,20 +3,21 @@ import { sendMessage, errorMessage } from '@/lib/messaging';
 import { getSettings } from '@/lib/storage';
 import { aiStatusFor } from '@/lib/ai/status';
 import { formatTokens } from '@/lib/ai/usage';
+import { looksLikeJobDescription } from '@/lib/job/readability';
 import { matchFromAnalysis } from '@/lib/job/match';
 import { canonicalize } from '@/lib/job/sites';
 import { openDocumentViewer as openViewer } from '@/lib/viewer';
 import {
   buildContext,
+  clearStoredJob as clearStoredJobSession,
   detectForm,
-  extractJob,
+  extractJobResolved,
   fillForm,
-  forgetRecipe,
+  getJobStatus as readJobStatus,
   getMappings,
-  getPastedDescription,
+  getPastedFields,
   getPicks,
   getRecipePicks,
-  hasRecipe,
   manualJob,
   persistRecipe,
   pickAnswerTarget,
@@ -25,7 +26,8 @@ import {
   pickJobField,
   scanLinkedInProfile,
   setMapping,
-  setPastedDescription,
+  setPastedField,
+  useStoredJob as applyStoredJobSession,
 } from '../actions';
 import { getOverlayState, patchOverlay } from './store';
 import { DOC_FUNCTIONS, type GuideTarget } from './constants';
@@ -155,18 +157,24 @@ export async function refreshContext(job?: ExtractedJob | null): Promise<void> {
   let aiReady = false;
   let aiReason: string | undefined;
   let fileSource: 'generated' | 'uploaded' = 'generated';
+  let allowNoDescription = false;
+  let showOverlay = true;
+  let faithfulness = 60;
   try {
     const settings = await getSettings();
     const ai = aiStatusFor(settings);
     aiReady = ai.ready;
     aiReason = ai.reason;
     fileSource = settings.document.fileSource;
+    allowNoDescription = settings.document.allowGenerateWithoutDescription === true;
+    showOverlay = settings.ui.showOverlay !== false;
+    faithfulness = Math.max(0, Math.min(100, settings.document.faithfulness ?? 60));
   } catch {
     aiReady = false;
   }
 
   let nextJob: ExtractedJob | null = job ?? previousJob;
-  if (job === undefined) nextJob = context.hasJob ? extractJob() : null;
+  if (job === undefined) nextJob = await extractJobResolved();
 
   if (nextJob) {
     const previousCanonical = previousJob ? canonicalize(previousJob.canonicalUrl || previousJob.url) : '';
@@ -187,39 +195,161 @@ export async function refreshContext(job?: ExtractedJob | null): Promise<void> {
     aiReady,
     aiReason,
     fileSource,
+    allowNoDescription,
+    showOverlay,
+    faithfulness,
     picks: { ...(await getRecipePicks().catch(() => ({}))), ...getPicks() },
-    pastedText: getPastedDescription().text,
+    pastedFields: getPastedFields(),
     mappings: await getMappings().catch(() => []),
-    recipeSaved: await hasRecipe().catch(() => false),
   });
 
+  await loadJobStatus();
+  updateHealth();
   await loadMatch();
   await loadDocuments();
   await loadUsage();
+}
+
+/** Hides or shows the floating overlay; also persisted so the popup agrees. */
+export async function setShowOverlay(value: boolean): Promise<void> {
+  patchOverlay({ showOverlay: value, panelOpen: value ? getOverlayState().panelOpen : false });
+  await sendMessage('settings.patch', { patch: { ui: { showOverlay: value } } }).catch(() => undefined);
+}
+
+export async function loadJobStatus(): Promise<void> {
+  try {
+    // Content-script action, called directly: messaging would not reach it.
+    const status = await readJobStatus();
+    patchOverlay({ jobSource: status.source, descriptionWords: status.words });
+  } catch {
+    /* status is informational */
+  }
+}
+
+/** Recomputes the detection health that colours the floating button. */
+export function updateHealth(): void {
+  const state = getOverlayState();
+  const issues: string[] = [];
+  if (!state.job) issues.push('No job details were found on this page.');
+  if (state.descriptionWords < 20) issues.push('No readable job description was found.');
+  try {
+    const probe = detectForm();
+    if (probe.found && probe.fields === 0) issues.push('The application form could not be read.');
+  } catch {
+    /* detection is best-effort */
+  }
+  patchOverlay({ health: { ok: issues.length === 0, issues } });
+}
+
+export async function setFaithfulness(value: number): Promise<void> {
+  const level = Math.max(0, Math.min(100, Math.round(value)));
+  patchOverlay({ faithfulness: level });
+  await sendMessage('settings.patch', { patch: { document: { faithfulness: level } } }).catch(() => undefined);
+}
+
+export function toggleDescription(): void {
+  patchOverlay({ showDescription: !getOverlayState().showDescription });
+}
+
+/** The confirmation shown when generating without a job description. */
+export function requestGenerateWithoutDescription(): void {
+  patchOverlay({ confirmNoDescription: true });
+}
+
+export function cancelGenerateWithoutDescription(): void {
+  patchOverlay({ confirmNoDescription: false });
+}
+
+export async function confirmGenerateWithoutDescription(): Promise<void> {
+  patchOverlay({ confirmNoDescription: false });
+  await runTailorAndFill(true);
+}
+
+export async function openJobPicker(): Promise<void> {
+  patchOverlay({ jobPickerOpen: true, recentJobsLoading: true, recentJobs: [] });
+  try {
+    const { jobs } = await sendMessage('jobs.recent', undefined, { timeout: 15000 });
+    patchOverlay({ recentJobs: jobs });
+  } catch {
+    patchOverlay({ recentJobs: [] });
+  }
+  patchOverlay({ recentJobsLoading: false });
+}
+
+export function closeJobPicker(): void {
+  patchOverlay({ jobPickerOpen: false });
+}
+
+export async function useRecentJob(jobId: string): Promise<void> {
+  const ok = await applyStoredJobSession(jobId);
+  if (!ok) {
+    setStatus('Could not load that job description.', 'warn');
+    return;
+  }
+  patchOverlay({ jobPickerOpen: false });
+  await refreshContext();
+}
+
+export async function clearStoredJob(): Promise<void> {
+  clearStoredJobSession();
+  await refreshContext();
 }
 
 /* ------------------------------------------------------------------ */
 /* Actions                                                             */
 /* ------------------------------------------------------------------ */
 
-export async function runTailorAndFill(): Promise<void> {
+export async function runTailorAndFill(force = false): Promise<void> {
+  const state = getOverlayState();
+  if (state.descriptionWords < 20 && !state.allowNoDescription && !force) {
+    requestGenerateWithoutDescription();
+    return;
+  }
   await withBusy('Reading the posting and generating documents…', async () => {
-    const state = getOverlayState();
-    const job = state.job ?? extractJob();
+    const job = state.job ?? (await extractJobResolved());
     if (!job) {
-      setStatus('Nothing to tailor yet — use “Guide me” to pick the fields or paste the job description.', 'warn');
+      setStatus('Nothing to tailor yet - use “Guide me” to pick the fields or paste the job description.', 'warn');
       return;
     }
     const probe = detectForm();
     const result = await sendMessage(
       'pipeline.tailor',
-      { job, questions: probe.found ? probe.questions : undefined, form: { hasCoverLetterField: probe.hasCoverLetterField } },
+      { job, questions: probe.found ? probe.questions : undefined, form: { hasCoverLetterField: probe.hasCoverLetterField }, allowNoDescription: force || state.allowNoDescription },
       { timeout: 180000 },
     );
     patchOverlay({ documents: result.documents, answers: result.answers ?? [] });
     setStatus('Documents ready. Filling the form…', 'success');
     await runFill(result.documents.map((document) => document.id), result.answers);
   });
+}
+
+/** Primary action: fills with the documents already generated for this page,
+ *  and only runs the AI when nothing has been generated yet. */
+export async function runTailorOrFill(): Promise<void> {
+  const state = getOverlayState();
+  if (state.documents.length > 0) {
+    await runFill(
+      state.documents.map((document) => document.id),
+      state.answers,
+    );
+    return;
+  }
+  await runTailorAndFill();
+}
+
+/** Reads the clipboard and uses it as the description when it looks like prose. */
+export async function pasteDescriptionFromClipboard(): Promise<void> {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!looksLikeJobDescription(text)) {
+      setStatus('The clipboard does not look like a job description - copy a few paragraphs of the posting text, then try again. You can also paste it in the guide.', 'warn');
+      return;
+    }
+    await runPasteField('description', text);
+    setStatus('Job description pasted from the clipboard.', 'success');
+  } catch {
+    setStatus('Could not read the clipboard - open the guide and paste it into the description box.', 'warn');
+  }
 }
 
 export async function runFill(
@@ -229,7 +359,7 @@ export async function runFill(
   await withBusy('Filling your details…', async () => {
     const report = await fillForm({ documentIds, answers });
     const tone = report.filled > 0 ? 'success' : 'warn';
-    const hint = report.skipped > 0 ? ' Some fields could not be matched — use “Send to field” below, or copy the answers and download the files.' : '';
+    const hint = report.skipped > 0 ? ' Some fields could not be matched - use “Send to field” below, or copy the answers and download the files.' : '';
     setStatus(`Filled ${report.filled} of ${report.total} fields.${hint}`, tone);
   });
 }
@@ -237,7 +367,7 @@ export async function runFill(
 export async function runAnalyze(): Promise<void> {
   await withBusy('Scoring the match against your profile…', async () => {
     const state = getOverlayState();
-    const job = state.job ?? extractJob();
+    const job = state.job ?? (await extractJobResolved());
     if (!job) {
       setStatus('No job detected on this page.', 'warn');
       return;
@@ -262,7 +392,7 @@ export async function runAnalyze(): Promise<void> {
 export async function runQueue(): Promise<void> {
   await withBusy('Adding this job to the agent queue…', async () => {
     const state = getOverlayState();
-    const job = state.job ?? extractJob();
+    const job = state.job ?? (await extractJobResolved());
     if (!job) {
       setStatus('No job detected on this page.', 'warn');
       return;
@@ -286,34 +416,29 @@ export async function runOpen(): Promise<void> {
   await sendMessage('app.openOptions', { tab: 'dashboard' });
 }
 
-export async function runPasteDescription(text: string): Promise<void> {
-  const trimmed = text.trim();
-  setPastedDescription(trimmed);
+export async function runPasteField(target: GuideTarget, value: string): Promise<void> {
+  setPastedField(target, value);
   const job = await manualJob().catch(() => null);
   patchOverlay({
-    pastedText: trimmed,
+    pastedFields: getPastedFields(),
     job: job ?? getOverlayState().job,
     picks: { ...(await getRecipePicks().catch(() => ({}))), ...getPicks() },
   });
-  setStatus(trimmed ? 'Job description saved — JobPal will use it exactly like a scraped one.' : 'Pasted description cleared.', trimmed ? 'success' : 'info');
+  await loadJobStatus();
+  updateHealth();
 }
 
 export async function runPick(target: GuideTarget): Promise<void> {
   patchOverlay({ picking: true });
-  setStatus(`Click the element containing the ${target}…`, 'info');
   try {
     const result = await pickJobField(target);
-    if (!result) {
-      setStatus('Selection cancelled.', 'warn');
-      return;
-    }
+    if (!result) return;
     const job = await manualJob().catch(() => null);
-    patchOverlay({
-      picks: getPicks(),
-      job: job ?? getOverlayState().job,
-      status: `Captured ${result.label}: “${result.value.slice(0, 80)}”.`,
-      statusTone: 'success',
-    });
+    patchOverlay({ picks: getPicks(), job: job ?? getOverlayState().job });
+    // Selections are saved for this site automatically; no save button needed.
+    await persistRecipe().catch(() => undefined);
+    await loadJobStatus();
+    updateHealth();
   } catch (error) {
     setStatus(errorMessage(error), 'error');
   } finally {
@@ -323,18 +448,11 @@ export async function runPick(target: GuideTarget): Promise<void> {
 
 export async function runMapField(): Promise<void> {
   patchOverlay({ picking: true });
-  setStatus('Click the form field you want to map…', 'info');
   try {
     const result = await pickFormField();
-    if (!result) {
-      setStatus('Selection cancelled.', 'warn');
-      return;
-    }
-    patchOverlay({
-      mappings: await getMappings(),
-      status: `Mapped “${result.label}” to ${result.key}. Change it below if needed.`,
-      statusTone: 'success',
-    });
+    if (!result) return;
+    patchOverlay({ mappings: await getMappings() });
+    await persistRecipe().catch(() => undefined);
   } catch (error) {
     setStatus(errorMessage(error), 'error');
   } finally {
@@ -345,34 +463,13 @@ export async function runMapField(): Promise<void> {
 export function applyMapping(selector: string, key: string, label?: string): void {
   setMapping(selector, key as never, label);
   patchOverlay({ mappings: getOverlayState().mappings.map((item) => (item.selector === selector ? { ...item, key } : item)) });
-}
-
-export async function runSaveRecipe(): Promise<void> {
-  await withBusy('Saving this site’s recipe…', async () => {
-    const result = await persistRecipe();
-    patchOverlay({ recipeSaved: result.saved });
-    setStatus(result.saved ? `Saved. JobPal will detect this layout automatically on ${result.host}.` : 'Could not save a recipe for this page.', result.saved ? 'success' : 'warn');
-  });
-}
-
-export async function runForgetRecipe(): Promise<void> {
-  await withBusy('Forgetting this site…', async () => {
-    await forgetRecipe();
-    patchOverlay({ picks: {}, mappings: [], recipeSaved: false });
-    setStatus('Recipe and manual selections cleared for this site.', 'info');
-  });
+  void persistRecipe().catch(() => undefined);
 }
 
 export async function runPickAnswer(question: string, answer: string): Promise<void> {
   patchOverlay({ picking: true });
-  setStatus('Click the field where this answer should go…', 'info');
   try {
-    const result = await pickAnswerTarget(question, answer);
-    if (!result) {
-      setStatus('Selection cancelled.', 'warn');
-      return;
-    }
-    setStatus(`Answer placed in “${result.label}”.`, 'success');
+    await pickAnswerTarget(question, answer);
   } catch (error) {
     setStatus(errorMessage(error), 'error');
   } finally {
@@ -382,17 +479,11 @@ export async function runPickAnswer(question: string, answer: string): Promise<v
 
 export async function runPickFile(documentId: string, kind: string): Promise<void> {
   patchOverlay({ picking: true });
-  setStatus('Click the upload field this file belongs in…', 'info');
   try {
     const result = await pickFileTarget(documentId, kind);
-    if (!result) {
-      setStatus('Selection cancelled.', 'warn');
-      return;
+    if (result && !result.attached) {
+      setStatus('Field remembered, but attaching failed. Download the file and attach it manually.', 'warn');
     }
-    setStatus(
-      result.attached ? 'File attached — JobPal will fill it automatically next time.' : 'Field remembered, but attaching failed. Download the file and attach it manually.',
-      result.attached ? 'success' : 'warn',
-    );
   } catch (error) {
     setStatus(errorMessage(error), 'error');
   } finally {
@@ -404,7 +495,7 @@ export async function regenerateKind(kind: string): Promise<void> {
   const state = getOverlayState();
   const label = DOC_FUNCTIONS.find((entry) => entry.kind === kind)?.label ?? kind.replace('_', ' ');
   if (!state.aiReady) {
-    setStatus('Connect an AI provider first — regeneration needs AI.', 'warn');
+    setStatus('Connect an AI provider first - regeneration needs AI.', 'warn');
     return;
   }
   await withBusy(`Regenerating ${label.toLowerCase()} with your current design…`, async () => {
@@ -422,12 +513,12 @@ export async function regenerateKind(kind: string): Promise<void> {
 export async function regenerateAllDocuments(): Promise<void> {
   const state = getOverlayState();
   if (!state.aiReady) {
-    setStatus('Connect an AI provider first — regeneration needs AI.', 'warn');
+    setStatus('Connect an AI provider first - regeneration needs AI.', 'warn');
     return;
   }
   const applicationId = state.applicationId;
   if (!applicationId) {
-    setStatus('Nothing to regenerate yet — generate the documents first.', 'warn');
+    setStatus('Nothing to regenerate yet - generate the documents first.', 'warn');
     return;
   }
   await withBusy('Regenerating every document…', async () => {
@@ -442,7 +533,7 @@ export async function copyText(text: string, message: string): Promise<void> {
     await navigator.clipboard.writeText(text);
     setStatus(message, 'success');
   } catch {
-    setStatus('Clipboard unavailable — select the text and copy it manually.', 'warn');
+    setStatus('Clipboard unavailable - select the text and copy it manually.', 'warn');
   }
 }
 
@@ -501,6 +592,62 @@ export async function attachDocument(documentId: string): Promise<void> {
     setStatus(`Attached ${file.filename}.`, 'success');
   } catch (error) {
     setStatus(errorMessage(error), 'error');
+  }
+}
+
+export async function openEditor(documentId: string): Promise<void> {
+  patchOverlay({
+    editorDocumentId: documentId,
+    editorLoading: true,
+    editorBusy: false,
+    editorError: undefined,
+    editorOriginal: undefined,
+  });
+  try {
+    const info = await sendMessage('doc.getContent', { documentId }, { timeout: 15000 });
+    if (!info.editable) {
+      patchOverlay({ editorLoading: false, editorError: 'This file has no editable content.' });
+      return;
+    }
+    if (info.content === null) {
+      patchOverlay({
+        editorLoading: false,
+        editorError: 'This file was generated before content editing existed. Press Regenerate once, then you can edit it.',
+      });
+      return;
+    }
+    patchOverlay({ editorLoading: false, editorOriginal: info.content });
+  } catch (error) {
+    patchOverlay({ editorLoading: false, editorError: errorMessage(error) });
+  }
+}
+
+export function closeEditor(): void {
+  patchOverlay({
+    editorDocumentId: undefined,
+    editorLoading: false,
+    editorBusy: false,
+    editorError: undefined,
+    editorOriginal: undefined,
+  });
+}
+
+export async function saveEditorContent(documentId: string, content: string): Promise<void> {
+  patchOverlay({ editorBusy: true, editorError: undefined });
+  try {
+    const { document } = await sendMessage('doc.updateContent', { documentId, content }, { timeout: 120000 });
+    const state = getOverlayState();
+    const replace = (list: DocumentRecord[]) => list.map((entry) => (entry.id === document.id ? document : entry));
+    patchOverlay({
+      editorBusy: false,
+      editorDocumentId: undefined,
+      editorOriginal: undefined,
+      documents: replace(state.documents),
+      allDocuments: replace(state.allDocuments),
+    });
+    setStatus(`${document.filename} was regenerated from your edits.`, 'success');
+  } catch (error) {
+    patchOverlay({ editorBusy: false, editorError: errorMessage(error) });
   }
 }
 

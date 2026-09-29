@@ -18,7 +18,7 @@ export function RecentApplicationRow({ application, onOpen }: { application: App
           <ScoreRing score={application.matchScore ?? 0} />
         </Show>
         <Show if={application.matchScore === undefined}>
-          <span className="muted">—</span>
+          <span className="muted">-</span>
         </Show>
       </td>
       <td className="muted small nowrap">{relativeTime(application.updatedAt)}</td>

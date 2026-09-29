@@ -8,6 +8,7 @@ import { Icon } from './Icon';
 export function Fab() {
   const state = useOverlayState();
   const ref = useRef<HTMLButtonElement>(null);
+  const title = state.health.ok ? 'JobPal - drag to move' : `JobPal: ${state.health.issues[0] ?? 'detection issues'} - click for details`;
 
   useLayoutEffect(() => {
     const element = ref.current;
@@ -29,8 +30,8 @@ export function Fab() {
     <button
       type="button"
       ref={ref}
-      className="jp-fab"
-      title="JobPal — drag to move"
+      className={`jp-fab ${state.health.ok ? 'jp-fab-ok' : 'jp-fab-bad'}`}
+      title={title}
       onClick={() => {
         const next = !state.panelOpen;
         patchOverlay({ panelOpen: next });

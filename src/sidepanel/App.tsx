@@ -132,7 +132,7 @@ export function SidePanelApp() {
       setDocuments(result.documents);
       await reloadApplications();
       const report = await sendTabMessage(tabId, 'page.fillForm', { documentIds: result.documents.map((document) => document.id), answers: result.answers }, { timeout: 120000 });
-      return `Documents ready — filled ${report.filled} fields.`;
+      return `Documents ready - filled ${report.filled} fields.`;
     });
 
   const checkMatch = () =>
@@ -199,7 +199,7 @@ export function SidePanelApp() {
       void sendTabMessage(tabId, 'page.pickFileTarget', { documentId: document.id, kind: document.kind }, { timeout: 120000 })
         .then((result) => {
           if (!result) toast.push('Selection cancelled.');
-          else toast.success(result.attached ? 'File attached.' : 'Field remembered — attach manually if it failed.');
+          else toast.success(result.attached ? 'File attached.' : 'Field remembered - attach manually if it failed.');
         })
         .catch((error) => toast.error(errorMessage(error)));
     },

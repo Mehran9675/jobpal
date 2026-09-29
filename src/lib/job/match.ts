@@ -54,17 +54,17 @@ export function profileSeniority(profile: Profile): string {
 
 export function profileToText(profile: Profile): string {
   const parts: string[] = [];
-  parts.push(`${profile.contact.firstName} ${profile.contact.lastName} — ${profile.contact.headline ?? ''}`);
+  parts.push(`${profile.contact.firstName} ${profile.contact.lastName} - ${profile.contact.headline ?? ''}`);
   if (profile.summary) parts.push(profile.summary);
   for (const group of profile.skills) parts.push(`${group.category}: ${group.items.join(', ')}`);
   for (const job of profile.experience) {
-    parts.push(`${job.title} at ${job.company} (${job.start} – ${job.current ? 'present' : job.end ?? ''})`);
+    parts.push(`${job.title} at ${job.company} (${job.start} - ${job.current ? 'present' : job.end ?? ''})`);
     if (job.description) parts.push(job.description);
     parts.push(...job.highlights);
     if (job.skills.length > 0) parts.push(job.skills.join(', '));
   }
-  for (const edu of profile.education) parts.push(`${edu.degree} ${edu.field} — ${edu.school}`);
-  for (const cert of profile.certifications) parts.push(`${cert.name} — ${cert.issuer}`);
+  for (const edu of profile.education) parts.push(`${edu.degree} ${edu.field} - ${edu.school}`);
+  for (const cert of profile.certifications) parts.push(`${cert.name} - ${cert.issuer}`);
   for (const project of profile.projects) parts.push(`${project.name}: ${project.description}`);
   for (const language of profile.languages) parts.push(`${language.language} (${language.level})`);
   return parts.filter(Boolean).join('\n');
@@ -225,7 +225,7 @@ export function localAnalysis(profile: Profile, job: { description: string; titl
 function extractBullets(text: string): string[] {
   const lines = text
     .split(/\r?\n/)
-    .map((line) => normalizeWhitespace(line.replace(/^[-•*·–—]\s*/, '')))
+    .map((line) => normalizeWhitespace(line.replace(/^[-•*·]\s*/, '')))
     .filter((line) => line.length > 25 && line.length < 240);
   const unique = [...new Set(lines)];
   return unique.slice(0, 12);

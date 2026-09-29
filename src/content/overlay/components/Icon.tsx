@@ -1,5 +1,7 @@
 import {
+  IconAlert,
   IconAttach,
+  IconBriefcase,
   IconBuilding,
   IconChevron,
   IconClipboard,
@@ -17,6 +19,7 @@ import {
   IconPin,
   IconRobot,
   IconSettings,
+  IconShield,
   IconSparkles,
   IconTag,
   IconTarget,
@@ -37,6 +40,7 @@ const ICONS = {
   clipboard: IconClipboard,
   note: IconNote,
   folder: IconFolder,
+  briefcase: IconBriefcase,
   dots: IconDots,
   eye: IconEye,
   download: IconDownload,
@@ -44,6 +48,8 @@ const ICONS = {
   copy: IconCopy,
   chevron: IconChevron,
   grip: IconGrip,
+  alert: IconAlert,
+  shield: IconShield,
 } as const;
 
 export type IconName = keyof typeof ICONS;

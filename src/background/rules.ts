@@ -140,7 +140,7 @@ export function shouldAutoSubmit(
   settings: AutomationSettings,
   options: { confidence: number; blockers: string[]; host: string },
 ): { submit: boolean; reason: string } {
-  if (!settings.autoSubmit) return { submit: false, reason: 'Auto-submit is disabled — review the form and press submit yourself.' };
+  if (!settings.autoSubmit) return { submit: false, reason: 'Auto-submit is disabled - review the form and press submit yourself.' };
   if (settings.mode !== 'auto') return { submit: false, reason: 'The agent is in assist mode.' };
   if (ruleEnabled(settings, 'review-before-submit')) return { submit: false, reason: 'Your rule "Always ask me before submitting" is enabled.' };
   if (options.blockers.length > 0) return { submit: false, reason: options.blockers[0] };

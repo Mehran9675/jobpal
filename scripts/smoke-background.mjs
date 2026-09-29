@@ -5,7 +5,7 @@ const firefox = process.argv.includes('--firefox');
 const bundle = fileURLToPath(new URL(firefox ? '../dist-firefox/background.js' : '../dist/background.js', import.meta.url));
 
 if (!existsSync(bundle)) {
-  console.error(`[smoke:background] ${bundle} not found — run "npm run build" first.`);
+  console.error(`[smoke:background] ${bundle} not found - run "npm run build" first.`);
   process.exit(1);
 }
 

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "JobPal — AI job-application copilot. Tailors your resume, CV and cover letter to any job and applies for you.",
+  "description": "JobPal - AI job-application copilot. Tailors your resume, CV and cover letter to any job and applies for you.",
   "license": "MIT",
   "engines": {
     "node": ">=20"

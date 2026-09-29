@@ -89,12 +89,37 @@ export function mainContentElement(doc: Document): HTMLElement | null {
   return null;
 }
 
+/**
+ * True when the text reads like prose rather than form labels or menus: at
+ * least two lines of eight or more words, forty words overall and two
+ * sentence-like stretches. Keeps input labels and select options from being
+ * mistaken for a job description.
+ */
+export function looksLikeProse(text: string): boolean {
+  const lines = text
+    .split(/\n+/)
+    .map((line) => normalizeWhitespace(line))
+    .filter((line) => line.length > 0);
+  const words = lines.reduce((count, line) => count + line.split(/\s+/).length, 0);
+  if (words < 40) return false;
+  const proseLines = lines.filter((line) => line.split(/\s+/).length >= 8);
+  if (proseLines.length < 2) return false;
+  const sentences = text.split(/[.!?](\s|$)/).filter((part) => part.trim().split(/\s+/).length >= 6);
+  return sentences.length >= 2;
+}
+
+/** The stricter check for anything presented as a job description. */
+export function looksLikeJobDescription(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 200) return false;
+  return looksLikeProse(trimmed);
+}
+
 export function jobDescriptionText(doc: Document): string {
   const main = mainContentElement(doc);
-  const text = readableText(doc, main ?? undefined);
-  if (text.length > 1200) return text;
-  const bodyText = readableText(doc);
-  return bodyText.length > text.length ? bodyText : text;
+  const mainText = main ? readableText(doc, main) : '';
+  if (looksLikeJobDescription(mainText)) return mainText;
+  return readableText(doc);
 }
 
 export function metaContent(doc: Document, names: string[]): string | undefined {

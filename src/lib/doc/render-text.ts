@@ -14,7 +14,7 @@ export function renderResumeMarkdown(resume: ResumeJson): string {
   if (resume.work.length > 0) {
     lines.push('## Experience', '');
     for (const item of resume.work) {
-      lines.push(`### ${item.position} — ${item.name}`);
+      lines.push(`### ${item.position} - ${item.name}`);
       lines.push(`${dateRange(item.startDate, item.endDate)}${item.location ? ` · ${item.location}` : ''}`);
       if (item.summary) lines.push('', item.summary);
       for (const highlight of item.highlights) lines.push(`- ${highlight}`);
@@ -29,7 +29,7 @@ export function renderResumeMarkdown(resume: ResumeJson): string {
   if (resume.projects.length > 0) {
     lines.push('## Projects', '');
     for (const project of resume.projects) {
-      lines.push(`### ${project.name}${project.url ? ` — ${project.url}` : ''}`);
+      lines.push(`### ${project.name}${project.url ? ` - ${project.url}` : ''}`);
       if (project.description) lines.push(project.description);
       for (const highlight of project.highlights) lines.push(`- ${highlight}`);
       lines.push('');
@@ -38,18 +38,18 @@ export function renderResumeMarkdown(resume: ResumeJson): string {
   if (resume.education.length > 0) {
     lines.push('## Education', '');
     for (const item of resume.education) {
-      lines.push(`- **${[item.studyType, item.area].filter(Boolean).join(', ')}** — ${item.institution} (${dateRange(item.startDate, item.endDate)})`);
+      lines.push(`- **${[item.studyType, item.area].filter(Boolean).join(', ')}** - ${item.institution} (${dateRange(item.startDate, item.endDate)})`);
     }
     lines.push('');
   }
   if (resume.certificates.length > 0) {
     lines.push('## Certifications', '');
-    for (const cert of resume.certificates) lines.push(`- ${cert.name}${cert.issuer ? ` — ${cert.issuer}` : ''}`);
+    for (const cert of resume.certificates) lines.push(`- ${cert.name}${cert.issuer ? ` - ${cert.issuer}` : ''}`);
     lines.push('');
   }
   if (resume.awards.length > 0) {
     lines.push('## Awards', '');
-    for (const award of resume.awards) lines.push(`- ${award.title}${award.awarder ? ` — ${award.awarder}` : ''}`);
+    for (const award of resume.awards) lines.push(`- ${award.title}${award.awarder ? ` - ${award.awarder}` : ''}`);
     lines.push('');
   }
   if (resume.languages.length > 0) {
@@ -79,7 +79,7 @@ export function renderResumePlainText(resume: ResumeJson, template: ResumeTempla
       case 'experience':
         for (const item of resume.work) {
           const dates = dateRange(item.startDate, item.endDate);
-          lines.push(`${item.position} — ${item.name}${dates ? `  (${dates})` : ''}`);
+          lines.push(`${item.position} - ${item.name}${dates ? `  (${dates})` : ''}`);
           if (item.summary) lines.push(`  ${item.summary}`);
           for (const highlight of item.highlights) lines.push(`  • ${highlight}`);
           lines.push('');
@@ -90,19 +90,19 @@ export function renderResumePlainText(resume: ResumeJson, template: ResumeTempla
         break;
       case 'projects':
         for (const project of resume.projects) {
-          lines.push(`${project.name}${project.url ? ` — ${project.url}` : ''}`);
+          lines.push(`${project.name}${project.url ? ` - ${project.url}` : ''}`);
           if (project.description) lines.push(`  ${project.description}`);
           for (const highlight of project.highlights) lines.push(`  • ${highlight}`);
         }
         break;
       case 'education':
-        for (const item of resume.education) lines.push(`${[item.studyType, item.area].filter(Boolean).join(', ')} — ${item.institution} (${dateRange(item.startDate, item.endDate)})`);
+        for (const item of resume.education) lines.push(`${[item.studyType, item.area].filter(Boolean).join(', ')} - ${item.institution} (${dateRange(item.startDate, item.endDate)})`);
         break;
       case 'certifications':
-        for (const cert of resume.certificates) lines.push(`• ${cert.name}${cert.issuer ? ` — ${cert.issuer}` : ''}`);
+        for (const cert of resume.certificates) lines.push(`• ${cert.name}${cert.issuer ? ` - ${cert.issuer}` : ''}`);
         break;
       case 'awards':
-        for (const award of resume.awards) lines.push(`• ${award.title}${award.awarder ? ` — ${award.awarder}` : ''}`);
+        for (const award of resume.awards) lines.push(`• ${award.title}${award.awarder ? ` - ${award.awarder}` : ''}`);
         break;
       case 'languages':
         lines.push(resume.languages.map((language) => `${language.language} (${language.fluency})`).join(' · '));

@@ -31,6 +31,9 @@ export const DEFAULT_DOCUMENT_SETTINGS: DocumentSettings = {
   pageSize: 'a4',
   hiddenSections: [],
   outputFormat: 'pdf',
+  headlineMode: 'tailored',
+  faithfulness: 60,
+  allowGenerateWithoutDescription: false,
   fileSource: 'generated',
   includePhoto: false,
   fileNamePattern: '{{name}}-{{kind}}',
@@ -209,6 +212,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     accent: '#6366f1',
     compactDensity: false,
     autoOpenSidePanel: false,
+    showOverlay: true,
   },
 };
 

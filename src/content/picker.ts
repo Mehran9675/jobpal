@@ -1,7 +1,10 @@
 import { normalizeWhitespace } from '@/lib/utils';
 import { readableText } from '@/lib/job/readability';
 
-export type PickTarget = 'title' | 'company' | 'location' | 'salary' | 'description' | 'formField' | 'answer' | 'file';
+/** Job information the guide can learn by picking an element. */
+export type JobPickTarget = 'title' | 'company' | 'location' | 'salary' | 'description';
+
+export type PickTarget = JobPickTarget | 'formField' | 'answer' | 'file';
 
 export const PICK_LABELS: Record<PickTarget, string> = {
   title: 'Job title',
@@ -22,9 +25,15 @@ export interface PickResult {
 }
 
 let active = false;
+let cancelActive: (() => void) | null = null;
 
 export function isPicking(): boolean {
   return active;
+}
+
+/** Stops an active picker without a user gesture (used by the cross-frame relay). */
+export function cancelPicking(): void {
+  cancelActive?.();
 }
 
 /**
@@ -53,7 +62,7 @@ export function startPicking(target: PickTarget, selectorFor: (element: Element)
 
     const badge = document.createElement('div');
     badge.setAttribute('data-jobpal-picker', 'badge');
-    badge.textContent = `JobPal · ${PICK_LABELS[target]} — click to select, Esc to cancel`;
+    badge.textContent = `JobPal · ${PICK_LABELS[target]} - click to select, Esc to cancel`;
     Object.assign(badge.style, {
       position: 'fixed',
       pointerEvents: 'none',
@@ -75,9 +84,28 @@ export function startPicking(target: PickTarget, selectorFor: (element: Element)
       badge.style.left = `${Math.max(8, Math.min(window.innerWidth - 320, rect.left))}px`;
     };
 
+    const hideHighlight = () => {
+      highlight.style.display = 'none';
+      badge.style.display = 'none';
+    };
+
+    const showHighlight = () => {
+      highlight.style.display = '';
+      badge.style.display = '';
+    };
+
+    const isFrame = (element: HTMLElement) => element instanceof HTMLIFrameElement || element instanceof HTMLFrameElement;
+
     const onMove = (event: MouseEvent) => {
       const element = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
       if (!element || element.closest('[data-jobpal-picker]')) return;
+      // Frames run their own picker (the request is broadcast to every frame),
+      // so the outer document must not box the whole iframe.
+      if (isFrame(element)) {
+        hideHighlight();
+        return;
+      }
+      showHighlight();
       const rect = element.getBoundingClientRect();
       Object.assign(highlight.style, {
         top: `${rect.top}px`,
@@ -96,7 +124,15 @@ export function startPicking(target: PickTarget, selectorFor: (element: Element)
       highlight.remove();
       badge.remove();
       active = false;
+      if (cancelActive === cancel) cancelActive = null;
     };
+
+    const cancel = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    cancelActive = cancel;
 
     const onScroll = () => {
       badge.style.opacity = '0.2';
@@ -108,6 +144,8 @@ export function startPicking(target: PickTarget, selectorFor: (element: Element)
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
+      // The frame's own picker handles clicks inside it; never resolve to the frame element.
+      if (element && isFrame(element)) return;
       if (!element || element.closest('[data-jobpal-picker]')) {
         resolve(null);
         cleanup();

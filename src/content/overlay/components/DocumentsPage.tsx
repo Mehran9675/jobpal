@@ -22,7 +22,7 @@ export function DocumentsPage() {
         <MiniButton onClick={() => void openAllDocuments(true)}>Refresh</MiniButton>
       </div>
       <div className="jp-guide-hint">
-        Choose any document — generated for this or another application, or one you uploaded — and place it on the form.
+        Choose any document - generated for this or another application, or one you uploaded - and place it on the form.
       </div>
       <Show if={state.allDocsLoading}>
         <div className="jp-guide-value">Loading documents…</div>

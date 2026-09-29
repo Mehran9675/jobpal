@@ -1,6 +1,6 @@
 import type { IconName } from './Icon';
 import { patchOverlay, useOverlayState } from '../store';
-import { runFill, runOpen, runQueue, runTailorAndFill } from '../actions';
+import { runFill, runOpen, runQueue, runTailorOrFill } from '../actions';
 import { ActionButton } from './ActionButton';
 
 interface ActionDefinition {
@@ -15,15 +15,16 @@ interface ActionDefinition {
 export function ActionsRow() {
   const state = useOverlayState();
   const aiTitle = state.aiReady ? undefined : 'Connect an AI provider to enable tailoring';
+  const hasDocuments = state.documents.length > 0;
 
   const actions: ActionDefinition[] = [
     {
-      label: 'Tailor & fill',
-      icon: 'sparkles',
+      label: hasDocuments ? 'Fill this page' : 'Tailor & fill',
+      icon: hasDocuments ? 'keyboard' : 'sparkles',
       variant: 'jp-btn primary',
-      disabled: !state.aiReady || !state.job,
-      title: aiTitle,
-      onClick: () => void runTailorAndFill(),
+      disabled: hasDocuments ? false : !state.aiReady || !state.job,
+      title: hasDocuments ? 'Use the documents already generated for this page - no new AI run' : aiTitle,
+      onClick: () => void runTailorOrFill(),
     },
     {
       label: 'Fill this form',

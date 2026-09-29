@@ -73,7 +73,7 @@ function jsonResumeToText(resume: Record<string, unknown>): string {
   if (work.length > 0) {
     lines.push('', 'EXPERIENCE');
     for (const item of work) {
-      lines.push(`${item.position ?? ''} — ${item.name ?? ''} (${item.startDate ?? ''} – ${item.endDate ?? 'Present'})`);
+      lines.push(`${item.position ?? ''} - ${item.name ?? ''} (${item.startDate ?? ''} - ${item.endDate ?? 'Present'})`);
       if (item.summary) lines.push(String(item.summary));
       for (const highlight of (item.highlights ?? []) as string[]) lines.push(`• ${highlight}`);
     }
@@ -81,7 +81,7 @@ function jsonResumeToText(resume: Record<string, unknown>): string {
   const education = (resume.education ?? []) as Record<string, unknown>[];
   if (education.length > 0) {
     lines.push('', 'EDUCATION');
-    for (const item of education) lines.push(`${item.studyType ?? ''} ${item.area ?? ''} — ${item.institution ?? ''}`);
+    for (const item of education) lines.push(`${item.studyType ?? ''} ${item.area ?? ''} - ${item.institution ?? ''}`);
   }
   const skills = (resume.skills ?? []) as Record<string, unknown>[];
   if (skills.length > 0) {

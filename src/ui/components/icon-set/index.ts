@@ -33,6 +33,7 @@ export { IconKeyboard } from './IconKeyboard';
 export { IconGear } from './IconGear';
 export { IconTag } from './IconTag';
 export { IconBuilding } from './IconBuilding';
+export { IconAlert } from './IconAlert';
 export { IconPin } from './IconPin';
 export { IconMoney } from './IconMoney';
 export { IconClipboard } from './IconClipboard';

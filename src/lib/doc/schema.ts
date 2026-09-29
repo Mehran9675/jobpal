@@ -219,5 +219,5 @@ export function dateRange(start: string, end: string): string {
   const from = format(start);
   const to = end ? format(end) : 'Present';
   if (!from && !to) return '';
-  return `${from} – ${to}`;
+  return `${from} - ${to}`;
 }

@@ -1,9 +1,9 @@
-import type { ApplicationRecord, DocFormat, DocKind, ID, Profile, ProviderConnection } from '@/types';
+import type { ApplicationQuestion, ApplicationRecord, DocFormat, DocKind, DocumentRecord, ID, Profile, ProviderConnection } from '@/types';
 import type { RequestMap } from '@/types/messages';
 import { createRouter, type Router } from '@/lib/messaging';
 import { openOptionsPage, runtime, storageLocalGet, storageLocalSet, tabsQuery, tabSendMessage } from '@/lib/browser';
 import { deleteProfile, deleteResume, getDefaultProfile, getProfiles, getResumes, getSettings, patchSettings, saveProfile, saveResume } from '@/lib/storage';
-import { deleteApplication, deleteDocument, getDocument, listApplications, listDocuments, listJobs, recordEvent, saveApplication, saveJob, sanitizeDocuments } from '@/lib/db';
+import { deleteApplication, deleteDocument, getDocument, getJob, listApplications, listDocuments, listJobs, recordEvent, saveApplication, saveDocument, saveJob, sanitizeDocuments } from '@/lib/db';
 import { listModels, testConnection } from '@/lib/ai/client';
 import { startOAuthFlow } from '@/lib/ai/oauth';
 import { aiStatusFor } from '@/lib/ai/status';
@@ -15,6 +15,7 @@ import { cancelToken, createToken, isCancelled, releaseToken, tokenKeyFor } from
 import { parseResumeText } from '@/lib/ai/tasks';
 import { getTemplate } from '@/lib/doc/templates';
 import { previewHtml, renderFiles } from '@/lib/doc/renderer';
+import { isEditableKind, serializeAnswersContent, serializeCoverLetterContent, serializeResumeContent } from '@/lib/doc/content';
 import { tailorForJob, updateApplicationStatus, upsertJob, buildTaskContextForProfile } from './pipeline';
 import { chatWithSettings, requireAIConnection } from './ai-router';
 import {
@@ -136,6 +137,20 @@ function registerHandlers(): void {
     const jobs = await listJobs();
     return { job: findJobForUrl(jobs, url, title, company) };
   });
+  router.handle('job.get', async ({ jobId }) => ({ job: (await getJob(jobId)) ?? null }));
+  router.handle('jobs.recent', async () => {
+    const jobs = await listJobs();
+    return {
+      jobs: jobs.slice(0, 30).map((job) => ({
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        url: job.url,
+        words: job.description ? job.description.trim().split(/\s+/).filter(Boolean).length : 0,
+        scrapedAt: job.scrapedAt,
+      })),
+    };
+  });
   router.handle('job.analyze', async ({ jobId }) => {
     const { context } = await buildTaskContextForProfile();
     const { getJob } = await import('@/lib/db');
@@ -169,6 +184,7 @@ function registerHandlers(): void {
         kinds: payload.kinds as DocKind[] | undefined,
         questions: payload.questions,
         form: payload.form,
+        allowNoDescription: payload.allowNoDescription,
         shouldCancel: () => isCancelled(key),
         onProgress: (message) => void broadcast('pipeline-progress', { key, message }),
       });
@@ -208,8 +224,14 @@ function registerHandlers(): void {
       job,
       application.answers.map((answer) => ({ id: answer.question, label: answer.question, type: 'textarea' as const, required: answer.required ?? false, answer: '' })),
     );
+    const renderedKinds: DocKind[] = ['resume', 'cover_letter', ...(answered.length > 0 ? (['answers'] as DocKind[]) : [])];
+    const regenerateContent: Partial<Record<DocKind, string>> = {
+      resume: serializeResumeContent(tailored),
+      cover_letter: serializeCoverLetterContent(letter),
+      ...(answered.length > 0 ? { answers: serializeAnswersContent(answered) } : {}),
+    };
     const rendered = await renderFiles({
-      kinds: ['resume', 'cover_letter', ...(answered.length > 0 ? (['answers'] as DocKind[]) : [])],
+      kinds: renderedKinds,
       formats: [settings.document.outputFormat],
       profile: tailored,
       template,
@@ -236,6 +258,7 @@ function registerHandlers(): void {
         createdAt: Date.now(),
         blob: file.blob,
         textPreview: file.preview?.slice(0, 4000),
+        content: regenerateContent[file.kind],
       };
       const { saveDocument } = await import('@/lib/db');
       await saveDocument(document);
@@ -284,6 +307,11 @@ function registerHandlers(): void {
     const saved: ID[] = [];
     const { saveDocument } = await import('@/lib/db');
     const replaceKinds = new Set((kinds as DocKind[] | undefined) ?? ['resume', 'cover_letter']);
+    const renderContent: Partial<Record<DocKind, string>> = {
+      ...(replaceKinds.has('resume') ? { resume: serializeResumeContent(tailored) } : {}),
+      ...(replaceKinds.has('cover_letter') ? { cover_letter: serializeCoverLetterContent(letter) } : {}),
+      ...(replaceKinds.has('answers') && answered.length > 0 ? { answers: serializeAnswersContent(answered) } : {}),
+    };
     const existing = await listDocuments(applicationId);
     const replaced = existing.filter((document) => replaceKinds.has(document.kind) && !document.uploaded);
     for (const document of replaced) await deleteDocument(document.id);
@@ -303,6 +331,7 @@ function registerHandlers(): void {
         createdAt: Date.now(),
         blob: file.blob,
         textPreview: file.preview?.slice(0, 4000),
+        content: renderContent[file.kind],
       };
       await saveDocument(document);
       saved.push(document.id);
@@ -339,6 +368,89 @@ function registerHandlers(): void {
     const chunk = 0x8000;
     for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
     return { base64: btoa(binary), mime: document.mime, filename: document.filename, kind: document.kind };
+  });
+  router.handle('doc.getContent', async ({ documentId }) => {
+    const document = await getDocument(documentId);
+    if (!document) throw new AppError('Document not found.', 'NOT_FOUND');
+    return {
+      kind: document.kind,
+      filename: document.filename,
+      format: document.format,
+      content: document.content ?? null,
+      editable: isEditableKind(document.kind) && !document.uploaded,
+    };
+  });
+  router.handle('doc.updateContent', async ({ documentId, content }) => {
+    const document = await getDocument(documentId);
+    if (!document) throw new AppError('Document not found.', 'NOT_FOUND');
+    if (!isEditableKind(document.kind) || document.uploaded) throw new AppError('This file has no editable content.', 'UNSUPPORTED');
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      throw new AppError('The edited content could not be read. Nothing was changed.', 'INVALID_INPUT');
+    }
+
+    const settings = await getSettings();
+    const job = document.jobId ? await getJob(document.jobId) : undefined;
+    let profile: Profile;
+    if (document.kind === 'resume') {
+      const candidate = parsed as Profile;
+      if (!candidate || typeof candidate !== 'object' || !candidate.contact || !Array.isArray(candidate.experience)) {
+        throw new AppError('The resume content is missing required fields (contact, experience).', 'INVALID_INPUT');
+      }
+      profile = candidate;
+    } else {
+      profile = await resolveEditedProfile(document.applicationId);
+    }
+
+    let coverLetterText: string | undefined;
+    let answers: ApplicationQuestion[] | undefined;
+    if (document.kind === 'cover_letter') {
+      const text = (parsed as { text?: unknown }).text;
+      if (typeof text !== 'string' || !text.trim()) throw new AppError('The cover letter text is empty.', 'INVALID_INPUT');
+      coverLetterText = text;
+    }
+    if (document.kind === 'answers') {
+      const list = (parsed as { answers?: unknown }).answers;
+      if (!Array.isArray(list)) throw new AppError('The answers content could not be read.', 'INVALID_INPUT');
+      answers = list.map((entry, index) => ({
+        id: `edited-${index}`,
+        label: String((entry as { question?: unknown }).question ?? ''),
+        answer: String((entry as { answer?: unknown }).answer ?? ''),
+        type: 'textarea' as const,
+        required: false,
+      }));
+    }
+
+    const rendered = await renderFiles({
+      kinds: [document.kind],
+      formats: [document.format],
+      profile,
+      template: getTemplate(document.templateId ?? settings.document.templateId),
+      settings: settings.document,
+      target: { title: job?.title ?? document.jobTitle, company: job?.company ?? document.company, url: job?.url, keywords: job?.analysis?.keywords ?? [] },
+      coverLetterText,
+      answers,
+      analysis: job?.analysis,
+    });
+    const file = rendered[0];
+    if (!file) throw new AppError('Nothing could be rendered from the edited content.', 'UNKNOWN');
+
+    const updated: DocumentRecord = {
+      ...document,
+      filename: file.filename || document.filename,
+      mime: file.mime,
+      size: file.blob.size,
+      blob: file.blob,
+      textPreview: file.preview?.slice(0, 4000),
+      templateId: file.templateId ?? document.templateId,
+      content,
+      editedAt: Date.now(),
+    };
+    await saveDocument(updated);
+    await recordEvent({ type: 'document-created', applicationId: document.applicationId, detail: `${file.filename} was edited and re-rendered` });
+    return { document: sanitizeDocuments([updated])[0] };
   });
   router.handle('doc.download', async ({ documentId }) => downloadDocument(documentId));
   router.handle('doc.delete', async ({ documentId }) => {
@@ -458,6 +570,19 @@ function registerHandlers(): void {
     return { ok: result.ok, tokens: result.tokens, message: result.message };
   });
 
+  /* ------------------------ frame pick relay --------------------- */
+  router.handle('frame.pickBroadcast', async ({ token, target }, sender) => {
+    const tabId = activeTabId(sender);
+    if (tabId === undefined) return;
+    await tabsBroadcast(tabId, { type: 'frame.pickStart', payload: { token, target } });
+  });
+  router.handle('frame.pickResult', async ({ token, result }, sender) => {
+    const tabId = activeTabId(sender);
+    if (tabId === undefined) return;
+    await tabsBroadcast(tabId, { type: 'frame.pickDone', payload: { token, result } }, 0);
+    await tabsBroadcast(tabId, { type: 'frame.pickStop', payload: { token } });
+  });
+
   /* ----------------------------- agent --------------------------- */
   router.handle('agent.state', () => getAgentState());
   router.handle('agent.start', async ({ mode }) => {
@@ -490,6 +615,43 @@ function registerHandlers(): void {
 async function collectJobsFromTab(tabId: number): Promise<ExtractedJob[]> {
   const response = await tabSendMessage<{ ok: boolean; data?: ExtractedJob[] }>(tabId, { type: 'page.scanLinkedInJobs', payload: undefined }).catch(() => undefined);
   return response?.data ?? [];
+}
+
+/**
+ * For edited cover letters and answers: reuse the newest edited resume of the
+ * same application so the header stays consistent, else the default profile.
+ */
+async function resolveEditedProfile(applicationId?: ID): Promise<Profile> {
+  if (applicationId) {
+    const resume = (await listDocuments(applicationId))
+      .filter((entry) => entry.kind === 'resume' && entry.content)
+      .sort((a, b) => (b.editedAt ?? b.createdAt) - (a.editedAt ?? a.createdAt))[0];
+    if (resume?.content) {
+      try {
+        const parsed = JSON.parse(resume.content) as Profile;
+        if (parsed?.contact) return parsed;
+      } catch {
+        /* fall through to the default profile */
+      }
+    }
+  }
+  return getDefaultProfile();
+}
+
+/** Sends a message to every frame of a tab, or to one frame when frameId is given. */
+function tabsBroadcast(tabId: number, message: unknown, frameId?: number): Promise<void> {
+  return new Promise((resolve) => {
+    const done = () => {
+      void chrome.runtime.lastError;
+      resolve();
+    };
+    try {
+      if (frameId === undefined) chrome.tabs.sendMessage(tabId, message, done);
+      else chrome.tabs.sendMessage(tabId, message, { frameId }, done);
+    } catch {
+      resolve();
+    }
+  });
 }
 
 export async function broadcast(name: string, data?: unknown): Promise<void> {
