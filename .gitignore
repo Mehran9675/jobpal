@@ -7,6 +7,10 @@ dist-firefox/
 release/
 *.zip
 *.xpi
+*.crx
+
+# CRX signing key (keep it stable via JOBPAL_CRX_KEY in CI)
+keys/
 
 # Generated assets (recreated by `npm run build` / `npm run icons`)
 public/icons/*.png

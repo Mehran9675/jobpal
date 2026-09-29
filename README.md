@@ -99,6 +99,19 @@ npm run smoke         # renders all 18 templates × 6 formats outside the browse
 **Load in Chrome/Edge:** `chrome://extensions` → enable *Developer mode* → *Load unpacked* → select `dist/`.
 **Load in Firefox:** `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → select `dist-firefox/manifest.json`.
 
+### Install a release build (no build tools needed)
+
+Every [release](https://github.com/Mehran9675/jobpal/releases/latest) attaches ready-to-install single-file builds:
+
+| File | Browser | How to install |
+| --- | --- | --- |
+| `jobpal-chrome-<version>.crx` | Chrome, Edge, Brave, Opera | Open `chrome://extensions`, enable **Developer mode**, drag the `.crx` onto the page and confirm. Chrome refuses self-signed files while Developer mode is off - if your version blocks it, the `.zip` with **Load unpacked** always works. |
+| `jobpal-firefox-<version>.xpi` | Firefox Developer Edition / Nightly / ESR (permanent) | Set `xpinstall.signatures.required` to `false` in `about:config`, then `about:addons` → gear icon → **Install Add-on From File** and pick the `.xpi`. Regular Firefox only installs signed add-ons. |
+| the same `.xpi` | Firefox (temporary) | Open `about:debugging#/runtime/this-firefox` and press **Load Temporary Add-on**; the add-on disappears when Firefox restarts. |
+| `jobpal-chrome-<version>.zip` / `jobpal-firefox-<version>.zip` | any Chromium / Firefox | Fallback for manual installs: unzip, then *Load unpacked* (Chrome) or pick `manifest.json` (Firefox developers). |
+
+`version.txt` in the same release lists the packaged version. To produce the same files yourself: `npm run build && npm run build:firefox && npm run package` (single-file `.crx` and `.xpi` plus the `.zip` archives land in `release/`).
+
 ### First run
 1. The management page opens automatically on install (also available from the popup ⚙ or right-click → *JobPal: open management page*).
 2. Open **AI providers** and connect one - this is required: every AI-powered feature stays disabled until a provider is active.
