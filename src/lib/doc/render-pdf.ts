@@ -114,7 +114,7 @@ async function embedFonts(doc: PDFDocument, template: ResumeTemplate, settings: 
         asciiOnly: false,
       };
     } catch (error) {
-      console.warn('[jobpal] custom font failed, falling back to standard fonts', error);
+      console.warn('[jobpaal] custom font failed, falling back to standard fonts', error);
     }
   }
   const sans = template.font === 'serif' ? false : true;
@@ -912,8 +912,8 @@ export async function renderResumePdf(resume: ResumeJson, template: ResumeTempla
   const doc = await PDFDocument.create();
   doc.setTitle(`${resume.basics.name} - Resume`);
   doc.setAuthor(resume.basics.name);
-  doc.setProducer('JobPal');
-  doc.setCreator('JobPal');
+  doc.setProducer('JobPaal');
+  doc.setCreator('JobPaal');
   const { fonts, asciiOnly } = await embedFonts(doc, template, settings);
   const ctx = baseContext(doc, resume, template, settings, fonts, asciiOnly);
   const order = effectiveSectionOrder(template, settings);
@@ -980,7 +980,7 @@ export async function renderCoverLetterPdf(
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(`${resume.basics.name} - Cover Letter`);
-  doc.setProducer('JobPal');
+  doc.setProducer('JobPaal');
   const { fonts, asciiOnly } = await embedFonts(doc, template, settings);
   const ctx = baseContext(doc, resume, template, settings, fonts, asciiOnly);
 
@@ -1052,7 +1052,7 @@ export async function renderPlainPdf(
     certificates: [],
     awards: [],
     languages: [],
-    meta: { version: '', generator: 'JobPal', template: template.id, generatedAt: new Date().toISOString() },
+    meta: { version: '', generator: 'JobPaal', template: template.id, generatedAt: new Date().toISOString() },
   };
   const ctx = baseContext(doc, resumeStub, template, settings, fonts, asciiOnly);
   const name = sanitize(plain.title, asciiOnly);

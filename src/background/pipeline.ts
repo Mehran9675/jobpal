@@ -91,7 +91,7 @@ export async function tailorForJob(input: ExtractedJob, options: TailorOptions =
   // persistent override for people who want it permanently.
   if (job.description.trim().length < 80 && settings.document.allowGenerateWithoutDescription !== true && options.allowNoDescription !== true) {
     throw new AppError(
-      'No job description was found. Pick it on the page or paste it in the JobPal overlay first (or confirm the override it offers).',
+      'No job description was found. Pick it on the page or paste it in the JobPaal overlay first (or confirm the override it offers).',
       'DESCRIPTION_REQUIRED',
     );
   }
@@ -127,7 +127,7 @@ export async function tailorForJob(input: ExtractedJob, options: TailorOptions =
       updatedAt: now,
       documents: [],
       answers: [],
-      timeline: [{ at: now, label: 'Application created by JobPal', status: 'draft' }],
+      timeline: [{ at: now, label: 'Application created by JobPaal', status: 'draft' }],
       notes: '',
       source: options.source ?? 'manual',
       autoSubmitted: false,

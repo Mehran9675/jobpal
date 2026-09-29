@@ -1,6 +1,7 @@
 import type { DocumentRecord, ExtractedJob } from '@/types';
 import { sendMessage, errorMessage } from '@/lib/messaging';
 import { getSettings } from '@/lib/storage';
+import { termsAccepted } from '@/lib/legal';
 import { aiStatusFor } from '@/lib/ai/status';
 import { formatTokens } from '@/lib/ai/usage';
 import { looksLikeJobDescription } from '@/lib/job/readability';
@@ -13,6 +14,7 @@ import {
   detectForm,
   extractJobResolved,
   fillForm,
+  getBankEntries,
   getJobStatus as readJobStatus,
   getMappings,
   getPastedFields,
@@ -24,6 +26,8 @@ import {
   pickFileTarget,
   pickFormField,
   pickJobField,
+  removeBankEntry,
+  saveBankEntry,
   scanLinkedInProfile,
   setMapping,
   setPastedField,
@@ -159,7 +163,7 @@ export async function refreshContext(job?: ExtractedJob | null): Promise<void> {
   let fileSource: 'generated' | 'uploaded' = 'generated';
   let allowNoDescription = false;
   let showOverlay = true;
-  let faithfulness = 60;
+  let termsOk = false;
   try {
     const settings = await getSettings();
     const ai = aiStatusFor(settings);
@@ -168,7 +172,7 @@ export async function refreshContext(job?: ExtractedJob | null): Promise<void> {
     fileSource = settings.document.fileSource;
     allowNoDescription = settings.document.allowGenerateWithoutDescription === true;
     showOverlay = settings.ui.showOverlay !== false;
-    faithfulness = Math.max(0, Math.min(100, settings.document.faithfulness ?? 60));
+    termsOk = termsAccepted(settings);
   } catch {
     aiReady = false;
   }
@@ -197,9 +201,10 @@ export async function refreshContext(job?: ExtractedJob | null): Promise<void> {
     fileSource,
     allowNoDescription,
     showOverlay,
-    faithfulness,
+    termsAccepted: termsOk,
     picks: { ...(await getRecipePicks().catch(() => ({}))), ...getPicks() },
     pastedFields: getPastedFields(),
+    bank: await getBankEntries().catch(() => []),
     mappings: await getMappings().catch(() => []),
   });
 
@@ -239,12 +244,6 @@ export function updateHealth(): void {
     /* detection is best-effort */
   }
   patchOverlay({ health: { ok: issues.length === 0, issues } });
-}
-
-export async function setFaithfulness(value: number): Promise<void> {
-  const level = Math.max(0, Math.min(100, Math.round(value)));
-  patchOverlay({ faithfulness: level });
-  await sendMessage('settings.patch', { patch: { document: { faithfulness: level } } }).catch(() => undefined);
 }
 
 export function toggleDescription(): void {
@@ -360,7 +359,8 @@ export async function runFill(
     const report = await fillForm({ documentIds, answers });
     const tone = report.filled > 0 ? 'success' : 'warn';
     const hint = report.skipped > 0 ? ' Some fields could not be matched - use “Send to field” below, or copy the answers and download the files.' : '';
-    setStatus(`Filled ${report.filled} of ${report.total} fields.${hint}`, tone);
+    const typed = report.filled > 0 ? ' Some sites only register input typed by hand: if a filled field is reported empty on submit, click into it and type a character.' : '';
+    setStatus(`Filled ${report.filled} of ${report.total} fields.${hint}${typed}`, tone);
   });
 }
 
@@ -470,6 +470,7 @@ export async function runPickAnswer(question: string, answer: string): Promise<v
   patchOverlay({ picking: true });
   try {
     await pickAnswerTarget(question, answer);
+    await persistRecipe().catch(() => undefined);
   } catch (error) {
     setStatus(errorMessage(error), 'error');
   } finally {
@@ -484,10 +485,48 @@ export async function runPickFile(documentId: string, kind: string): Promise<voi
     if (result && !result.attached) {
       setStatus('Field remembered, but attaching failed. Download the file and attach it manually.', 'warn');
     }
+    await persistRecipe().catch(() => undefined);
   } catch (error) {
     setStatus(errorMessage(error), 'error');
   } finally {
     patchOverlay({ picking: false });
+  }
+}
+
+/** Saves a hand-written question and answer for reuse on other forms. */
+export async function saveManualEntry(question: string, answer: string): Promise<void> {
+  try {
+    await saveBankEntry(question, answer);
+    patchOverlay({ bank: await getBankEntries() });
+    setStatus('Saved - JobPaal fills matching fields with this answer automatically.', 'success');
+  } catch (error) {
+    setStatus(errorMessage(error), 'error');
+  }
+}
+
+export async function removeManualEntry(id: string): Promise<void> {
+  await removeBankEntry(id);
+  patchOverlay({ bank: await getBankEntries() });
+}
+
+/** Drafts an answer for a question the page did not reveal to detection. */
+export async function askAiForAnswer(question: string): Promise<string | null> {
+  const state = getOverlayState();
+  if (!state.aiReady) {
+    setStatus('Connect an AI provider first - drafting answers needs AI.', 'warn');
+    return null;
+  }
+  const job = state.job ?? (await extractJobResolved());
+  if (!job) {
+    setStatus('No job detected on this page - pick or paste the description first.', 'warn');
+    return null;
+  }
+  try {
+    const { answer } = await sendMessage('pipeline.answerOne', { question, job }, { timeout: 60000 });
+    return answer;
+  } catch (error) {
+    setStatus(errorMessage(error), 'error');
+    return null;
   }
 }
 

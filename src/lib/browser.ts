@@ -102,7 +102,7 @@ export function notificationsCreate(options: chrome.notifications.NotificationOp
       resolve('');
       return;
     }
-    chrome.notifications.create(id ?? `jobpal-${Date.now()}`, options, (createdId) => {
+    chrome.notifications.create(id ?? `jobpaal-${Date.now()}`, options, (createdId) => {
       void lastError();
       resolve(createdId ?? '');
     });

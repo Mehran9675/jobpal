@@ -60,7 +60,7 @@ export function PasteJobModal({
     <Modal
       open
       title="Paste job description"
-      subtitle="For postings that have no readable description - “email us your resume” pages, images, PDFs or portals. JobPal treats it exactly like a scraped description."
+      subtitle="For postings that have no readable description - “email us your resume” pages, images, PDFs or portals. JobPaal treats it exactly like a scraped description."
       onClose={onClose}
       wide
     >

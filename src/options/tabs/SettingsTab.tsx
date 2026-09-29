@@ -21,7 +21,7 @@ export function SettingsTab({ settings, patchSettings }: { settings: AppSettings
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `jobpal-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.download = `jobpaal-backup-${new Date().toISOString().slice(0, 10)}.json`;
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       toast.success('Backup downloaded. API keys are excluded for safety.');
@@ -116,7 +116,7 @@ export function SettingsTab({ settings, patchSettings }: { settings: AppSettings
           </div>
         </SectionCard>
 
-        <SectionCard title="Autofill" hint="Controls how JobPal fills application forms.">
+        <SectionCard title="Autofill" hint="Controls how JobPaal fills application forms.">
           <Toggle checked={settings.autofill.enabled} onChange={(enabled) => void patchSettings({ autofill: { ...settings.autofill, enabled } })} label="Autofill enabled" />
           <div className="mt-2">
             <Toggle
@@ -184,7 +184,7 @@ export function SettingsTab({ settings, patchSettings }: { settings: AppSettings
           <div className="list-item">
             <IconShield size={16} />
             <div className="list-item__main">
-              <div className="list-item__title">No JobPal servers</div>
+              <div className="list-item__title">No JobPaal servers</div>
               <div className="list-item__meta">There is no backend. Prompts go directly from your browser to the AI provider you configured.</div>
             </div>
             <Badge tone="success">Verified</Badge>

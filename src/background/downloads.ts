@@ -25,7 +25,7 @@ async function ensureOffscreen(): Promise<boolean> {
     });
     return true;
   } catch (error) {
-    console.warn('[jobpal] offscreen unavailable', error);
+    console.warn('[jobpaal] offscreen unavailable', error);
     return false;
   }
 }
@@ -66,7 +66,7 @@ export async function downloadDocument(documentId: ID): Promise<{ ok: boolean; f
         return { ok: true, filename: document.filename };
       }
     } catch (error) {
-      console.warn('[jobpal] offscreen download failed, trying data URL', error);
+      console.warn('[jobpaal] offscreen download failed, trying data URL', error);
     }
   }
 
@@ -81,7 +81,7 @@ export async function downloadDocument(documentId: ID): Promise<{ ok: boolean; f
     });
     return { ok: true, filename: document.filename };
   } catch (error) {
-    await notify('Download failed', 'Open the JobPal management page and download the file from there.', 'error');
+    await notify('Download failed', 'Open the JobPaal management page and download the file from there.', 'error');
     throw error instanceof Error ? error : new Error(String(error));
   }
 }

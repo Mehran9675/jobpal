@@ -6,7 +6,8 @@ import { findApplicationForUrl } from '@/lib/applications/match';
 import { matchFromAnalysis } from '@/lib/job/match';
 import { buildPastedJob } from '@/lib/job/pasted';
 import { PasteJobModal, type PastedJobInput } from '@/ui/components/PasteJobModal';
-import { Show, type MatchCardData } from '@/ui/components';
+import { Show, TermsNotice, type MatchCardData } from '@/ui/components';
+import { termsAccepted } from '@/lib/legal';
 import { useToast } from '@/ui/components/Toast';
 import { useAgent, useApplications, usePageContext, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
 import { SidePanelHeader } from './components/SidePanelHeader';
@@ -132,7 +133,7 @@ export function SidePanelApp() {
       setDocuments(result.documents);
       await reloadApplications();
       const report = await sendTabMessage(tabId, 'page.fillForm', { documentIds: result.documents.map((document) => document.id), answers: result.answers }, { timeout: 120000 });
-      return `Documents ready - filled ${report.filled} fields.`;
+      return `Documents ready - filled ${report.filled} fields.${report.filled > 0 ? ' If the site flags a field as empty, click it and type a character.' : ''}`;
     });
 
   const checkMatch = () =>
@@ -240,6 +241,17 @@ export function SidePanelApp() {
   const showAnswers = (application?.answers ?? []).length > 0;
   const title = job?.title ?? context?.jobTitle ?? 'No job detected';
   const company = job?.company ?? context?.company ?? 'Open a job posting to see tailored actions here.';
+
+  if (!termsAccepted(settings)) {
+    return (
+      <div className="sidepanel">
+        <SidePanelHeader siteLabel={siteLabel} onOpenManagement={() => openOptions('dashboard')} />
+        <div className="sidepanel__body">
+          <TermsNotice onReview={() => openOptions('dashboard')} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sidepanel">

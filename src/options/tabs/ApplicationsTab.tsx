@@ -76,7 +76,7 @@ export function ApplicationsTab({
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `jobpal-applications-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.download = `jobpaal-applications-${new Date().toISOString().slice(0, 10)}.json`;
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       toast.success('Export downloaded.');

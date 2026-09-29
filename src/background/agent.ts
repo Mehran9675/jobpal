@@ -57,7 +57,7 @@ export async function agentStart(mode: 'assist' | 'auto' = 'assist'): Promise<Ag
   });
   await chrome.alarms.create(AGENT_ALARM, { periodInMinutes: 1 });
   if (settings.automation.notifyOnIssue) {
-    await notify('JobPal agent started', mode === 'auto' ? 'Working through your queue automatically.' : 'Assist mode: forms will be filled for your review.', 'info');
+    await notify('JobPaal agent started', mode === 'auto' ? 'Working through your queue automatically.' : 'Assist mode: forms will be filled for your review.', 'info');
   }
   void processNextItem();
   return next;
@@ -132,7 +132,7 @@ export async function processNextItem(): Promise<void> {
   }
   if (state.appliedToday >= settings.automation.dailyLimit) {
     const next = await setAgentState({ ...state, paused: true, log: agentLog(state, 'warn', `Daily limit of ${settings.automation.dailyLimit} applications reached.`) });
-    if (settings.automation.notifyOnIssue) await notifyNeedsAttention('Daily limit reached', `JobPal applied to ${next.appliedToday} jobs today.`);
+    if (settings.automation.notifyOnIssue) await notifyNeedsAttention('Daily limit reached', `JobPaal applied to ${next.appliedToday} jobs today.`);
     return;
   }
   const item = state.queue.find((queueItem) => queueItem.status === 'queued');
@@ -276,7 +276,7 @@ async function processItem(item: AgentQueueItem, mode: 'assist' | 'auto'): Promi
             status: 'applied',
             autoSubmitted: true,
             appliedAt: Date.now(),
-            timeline: [...application.timeline, { at: Date.now(), label: 'Submitted automatically by the JobPal agent' }],
+            timeline: [...application.timeline, { at: Date.now(), label: 'Submitted automatically by the JobPaal agent' }],
             updatedAt: Date.now(),
           });
         }
@@ -436,5 +436,5 @@ export async function findSearchTab(): Promise<chrome.tabs.Tab | null> {
 
 export async function resetAgentForTests(): Promise<void> {
   await storageLocalSet({ [AGENT_KEY]: defaultAgentState() });
-  await notificationsCreate({ type: 'basic', title: 'JobPal', message: 'Agent state reset', iconUrl: chrome.runtime.getURL('icons/icon128.png') });
+  await notificationsCreate({ type: 'basic', title: 'JobPaal', message: 'Agent state reset', iconUrl: chrome.runtime.getURL('icons/icon128.png') });
 }

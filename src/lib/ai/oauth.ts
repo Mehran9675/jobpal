@@ -32,7 +32,7 @@ async function sha256(input: string): Promise<string> {
  */
 export async function startOAuthFlow(providerId: string, clientIdOverride?: string): Promise<OAuthResult> {
   const def = PROVIDER_MAP[providerId];
-  if (!def?.oauth) return { ok: false, message: `${def?.name ?? providerId} does not support OAuth in JobPal. Use an API key instead.` };
+  if (!def?.oauth) return { ok: false, message: `${def?.name ?? providerId} does not support OAuth in JobPaal. Use an API key instead.` };
   const clientId = clientIdOverride?.trim() || def.oauth.clientId;
   if (!clientId) {
     return { ok: false, message: `Add a public OAuth client ID for ${def.name} first (Google Cloud console → APIs & Services → Credentials).` };

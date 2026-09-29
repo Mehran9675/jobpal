@@ -111,7 +111,7 @@ export function ApplicationDetail({
       </header>
 
       <div className="grid grid--2">
-        <SectionCard title="Status" hint="Keep this updated - JobPal uses it for follow-ups and duplicate detection.">
+        <SectionCard title="Status" hint="Keep this updated - JobPaal uses it for follow-ups and duplicate detection.">
           <Field label="Pipeline stage">
             <Select className="status-select" value={application.status} onChange={(event) => onStatus(application, event.target.value as ApplicationStatus)}>
               {APPLICATION_STATUSES.map(renderStatusOption)}
@@ -163,7 +163,7 @@ export function ApplicationDetail({
 
       <SectionCard title="Written answers" hint="Exactly what was submitted on the form - copy any answer, or all of them, for your own records or manual applications.">
         <Show if={application.answers.length === 0}>
-          <EmptyState icon={<IconNote size={20} />} title="No written answers" text="Screening answers appear here after JobPal fills a form with questions." />
+          <EmptyState icon={<IconNote size={20} />} title="No written answers" text="Screening answers appear here after JobPaal fills a form with questions." />
         </Show>
         <Show if={application.answers.length > 0}>
           <div className="row mb-2">

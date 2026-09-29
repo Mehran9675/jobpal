@@ -15,4 +15,6 @@ export { Show } from './Show';
 export { Stat } from './Stat';
 export { StatusBadge } from './StatusBadge';
 export { Textarea } from './Textarea';
+export { TermsGate } from './TermsGate';
+export { TermsNotice } from './TermsNotice';
 export { Toggle, type ToggleProps } from './Toggle';

@@ -16,7 +16,7 @@ export class OverlayErrorBoundary extends Component<{ children: ReactNode }, Err
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error('[jobpal] overlay render error', error, info.componentStack);
+    console.error('[jobpaal] overlay render error', error, info.componentStack);
   }
 
   render(): ReactNode {

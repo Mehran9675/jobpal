@@ -257,7 +257,7 @@ export const PROVIDERS: ProviderDef[] = [
     description: 'One key, every model. Great fallback provider and free-model access.',
     supportsJsonMode: true,
     defaultModel: 'openai/gpt-4o-mini',
-    extraHeaders: { 'X-Title': 'JobPal' },
+    extraHeaders: { 'X-Title': 'JobPaal' },
     models: [
       { id: 'openai/gpt-5.2', label: 'GPT-5.2', tier: 'flagship' },
       { id: 'anthropic/claude-sonnet-4.5', label: 'Claude Sonnet 4.5', tier: 'flagship' },

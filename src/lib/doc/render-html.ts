@@ -123,7 +123,7 @@ export function renderResumeHtml(resume: ResumeJson, template: ResumeTemplate, s
       ? `<div class="layout-two-col">${header}<div class="layout-two-col-body"><main class="main">${mainHtml}</main><aside class="rail">${sideHtml}</aside></div></div>`
       : `${header}${mainHtml}`;
 
-  const uniqueId = `jobpal-${template.id}`;
+  const uniqueId = `jobpaal-${template.id}`;
 
   return `<!doctype html>
 <html lang="en">
@@ -131,7 +131,7 @@ export function renderResumeHtml(resume: ResumeJson, template: ResumeTemplate, s
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${escapeHtml(resume.basics.name)} - Resume</title>
-<meta name="generator" content="JobPal" />
+<meta name="generator" content="JobPaal" />
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Person',

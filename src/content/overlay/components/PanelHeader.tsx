@@ -13,7 +13,7 @@ export function PanelHeader({ handleRef }: { handleRef: RefObject<HTMLDivElement
         <span className="jp-logo">
           <Icon name="logo" size={14} />
         </span>
-        <span>JobPal</span>
+        <span>JobPaal</span>
       </div>
       <div className="jp-header-right">
         <button
@@ -21,7 +21,7 @@ export function PanelHeader({ handleRef }: { handleRef: RefObject<HTMLDivElement
           className="jp-switch"
           role="switch"
           aria-checked={state.showOverlay}
-          title="Hide the overlay. Turn it back on from the JobPal popup."
+          title="Hide the overlay. Turn it back on from the JobPaal popup."
           onClick={() => void setShowOverlay(!state.showOverlay)}
         >
           <span className="jp-switch-track">

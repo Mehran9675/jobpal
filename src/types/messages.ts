@@ -98,6 +98,7 @@ export interface RequestMap {
   };
   'pipeline.cancel': { req: undefined; res: undefined };
   'pipeline.regenerate': { req: { applicationId: ID }; res: undefined };
+  'pipeline.answerOne': { req: { question: string; job: ExtractedJob }; res: { answer: string } };
   'doc.render': { req: { applicationId: ID; kinds?: string[]; formats?: DocFormat[] }; res: undefined };
   'doc.preview': { req: { kind?: string; applicationId?: ID }; res: { html: string } };
   'doc.getBlob': { req: { documentId: ID }; res: { base64: string; mime: string; filename: string; kind: string } };

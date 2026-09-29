@@ -1,4 +1,4 @@
-# JobPal engineering conventions
+# JobPaal engineering conventions
 
 These rules apply to every React file in this repository. Follow them exactly.
 

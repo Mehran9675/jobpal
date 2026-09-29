@@ -215,7 +215,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
         <div>
           <h1 className="main__title">My profile</h1>
           <p className="main__subtitle">
-            This is the single source of truth for every document. Keep variants for different role types - JobPal picks the default variant, and you can
+            This is the single source of truth for every document. Keep variants for different role types - JobPaal picks the default variant, and you can
             switch per application.
           </p>
         </div>
@@ -260,7 +260,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
         </div>
       </SectionCard>
 
-      <SectionCard title="Resume sources" hint="Upload a PDF/DOCX/JSON Resume, paste text, or scan your LinkedIn profile. JobPal parses it into structured data.">
+      <SectionCard title="Resume sources" hint="Upload a PDF/DOCX/JSON Resume, paste text, or scan your LinkedIn profile. JobPaal parses it into structured data.">
         <Show if={!ai.ready}>
           <div className="card card--flat mb-2" style={{ borderColor: 'var(--warning)' }}>
             <div className="row row--between">
@@ -299,7 +299,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
           />
         </div>
         <Show if={resumes.length === 0}>
-          <EmptyState title="No resume sources yet" text="Upload your current resume so JobPal can import your history in one click." />
+          <EmptyState title="No resume sources yet" text="Upload your current resume so JobPaal can import your history in one click." />
         </Show>
         <Show if={resumes.length > 0}>
           <table className="table">
@@ -407,7 +407,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
         }
       >
         <Show if={draft.experience.length === 0}>
-          <EmptyState title="No roles yet" text="Add your most recent role first - JobPal lists experience in the order you set." />
+          <EmptyState title="No roles yet" text="Add your most recent role first - JobPaal lists experience in the order you set." />
         </Show>
         <div className="col">{draft.experience.map(renderExperience)}</div>
       </SectionCard>
@@ -561,7 +561,7 @@ export function ProfileTab({ settings, patchSettings }: { settings: AppSettings;
       </SectionCard>
 
       <SectionCard title="Voluntary EEO answers" hint="Off by default. If enabled and you allow sensitive-field filling, these are used on voluntary self-identification forms only.">
-        <Toggle checked={draft.eeo.enabled} onChange={(enabled) => updateEeo({ enabled })} label="Allow JobPal to fill EEO questions" />
+        <Toggle checked={draft.eeo.enabled} onChange={(enabled) => updateEeo({ enabled })} label="Allow JobPaal to fill EEO questions" />
         <Show if={draft.eeo.enabled}>
           <div className="grid grid--2 mt-2">
             <Field label="Gender">

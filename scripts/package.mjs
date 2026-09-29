@@ -37,8 +37,8 @@ function pack(sourceDir, basename) {
 rmSync(outputDir, { recursive: true, force: true });
 mkdirSync(outputDir, { recursive: true });
 
-const chrome = pack(join(root, 'dist'), 'jobpal-chrome');
-const firefox = pack(join(root, 'dist-firefox'), 'jobpal-firefox');
+const chrome = pack(join(root, 'dist'), 'jobpaal-chrome');
+const firefox = pack(join(root, 'dist-firefox'), 'jobpaal-firefox');
 
 if (chrome.version !== firefox.version) {
   console.error(`[package] Version mismatch: chrome ${chrome.version} vs firefox ${firefox.version}`);
@@ -47,22 +47,26 @@ if (chrome.version !== firefox.version) {
 
 // Chrome installs a single .crx file. The signing key must stay the same
 // between builds so the extension ID (and user data) is stable: keep
-// keys/jobpal-crx.pem locally, or set the JOBPAL_CRX_KEY secret in CI.
-const KEY_PATH = join(root, 'keys', 'jobpal-crx.pem');
+// keys/jobpaal-crx.pem locally, or set the JOBPAAL_CRX_KEY secret in CI.
+// The old jobpal-crx.pem path and JOBPAL_CRX_KEY variable keep working so an
+// existing key (and therefore the extension ID) survives the rename.
+const KEY_PATH = join(root, 'keys', 'jobpaal-crx.pem');
+const LEGACY_KEY_PATH = join(root, 'keys', 'jobpal-crx.pem');
 function loadSigningKey() {
-  const fromEnv = process.env.JOBPAL_CRX_KEY;
+  const fromEnv = process.env.JOBPAAL_CRX_KEY || process.env.JOBPAL_CRX_KEY;
   if (fromEnv && fromEnv.trim()) return fromEnv;
   if (existsSync(KEY_PATH)) return readFileSync(KEY_PATH, 'utf8');
+  if (existsSync(LEGACY_KEY_PATH)) return readFileSync(LEGACY_KEY_PATH, 'utf8');
   const pem = generatePrivateKeyPem();
   mkdirSync(join(root, 'keys'), { recursive: true });
   writeFileSync(KEY_PATH, pem);
-  console.log('[package] generated a new CRX signing key at keys/jobpal-crx.pem');
-  console.log('[package] keep that file (or set JOBPAL_CRX_KEY) so the extension ID stays stable');
+  console.log('[package] generated a new CRX signing key at keys/jobpaal-crx.pem');
+  console.log('[package] keep that file (or set JOBPAAL_CRX_KEY) so the extension ID stays stable');
   return pem;
 }
 
 const { crx, extensionId } = createCrx(chrome.zip, loadSigningKey());
-const crxPath = join(outputDir, `jobpal-chrome-${chrome.version}.crx`);
+const crxPath = join(outputDir, `jobpaal-chrome-${chrome.version}.crx`);
 writeFileSync(crxPath, crx);
 console.log(`[package] ${relative(root, crxPath)} (extension ID ${extensionId})`);
 

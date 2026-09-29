@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const outDir = join(tmpdir(), 'jobpal-smoke');
+const outDir = join(tmpdir(), 'jobpaal-smoke');
 
 const entry = `
 import { renderFiles } from './src/lib/doc/renderer.ts';

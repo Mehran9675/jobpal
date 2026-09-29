@@ -105,7 +105,7 @@ export function createRouter(): Router {
       return { ok: true, data: data as never, id: message.id };
     } catch (error) {
       const message_ = error instanceof Error ? error.message : String(error);
-      console.error(`[jobpal] handler "${message.type}" failed:`, error);
+      console.error(`[jobpaal] handler "${message.type}" failed:`, error);
       return { ok: false, error: message_, code: errorCodeOf(error), id: message.id };
     }
   };

@@ -9,9 +9,9 @@ export function GuidePanel() {
 
   return (
     <div className="jp-guide">
-      <div className="jp-guide-title">Guide JobPal on this page</div>
+      <div className="jp-guide-title">Guide JobPaal on this page</div>
       <div className="jp-guide-hint">
-        Pick the elements that hold each piece of information, or paste the text when a value lives inside a frame JobPal cannot read. Every change is saved for this site automatically, so detection works next time too.
+        Pick the elements that hold each piece of information, or paste the text when a value lives inside a frame JobPaal cannot read. Every change is saved for this site automatically, so detection works next time too.
       </div>
       {GUIDE_TARGETS.map(renderGuideTarget)}
       <GuideMappings />

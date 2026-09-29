@@ -186,7 +186,7 @@ export async function attachFileInput(input: HTMLInputElement, blob: Blob, filen
     input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     return true;
   } catch (error) {
-    console.warn('[jobpal] file attach failed', error);
+    console.warn('[jobpaal] file attach failed', error);
     return false;
   }
 }

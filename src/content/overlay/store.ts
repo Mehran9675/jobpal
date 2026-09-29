@@ -11,7 +11,6 @@ export interface OverlayState {
   job: ExtractedJob | null;
   /** Detection health: issues that need manual work (drives the FAB colour). */
   health: { ok: boolean; issues: string[] };
-  faithfulness: number;
   documents: DocumentRecord[];
   applicationId?: string;
   busy: boolean;
@@ -24,6 +23,7 @@ export interface OverlayState {
   guideOpen: boolean;
   picking: boolean;
   picks: Record<string, { value: string; selector: string }>;
+  bank: { id: string; question: string; answer: string }[];
   mappings: { selector: string; key: string; label?: string }[];
   filesLoading: boolean;
   answers: { question: string; answer: string; required?: boolean }[];
@@ -46,6 +46,7 @@ export interface OverlayState {
   recentJobsLoading: boolean;
   panelOpen: boolean;
   showOverlay: boolean;
+  termsAccepted: boolean;
   scale: number;
   positionVersion: number;
   /* Content editor (opened from a document row). */
@@ -71,7 +72,6 @@ const initialState: OverlayState = {
   context: { url: typeof location !== 'undefined' ? location.href : '', title: '', site: 'other', hasJob: false, hasApplicationForm: false },
   job: null,
   health: { ok: true, issues: [] },
-  faithfulness: 60,
   documents: [],
   busy: false,
   status: '',
@@ -82,6 +82,7 @@ const initialState: OverlayState = {
   guideOpen: false,
   picking: false,
   picks: {},
+  bank: [],
   mappings: [],
   filesLoading: false,
   answers: [],
@@ -103,6 +104,7 @@ const initialState: OverlayState = {
   recentJobsLoading: false,
   panelOpen: false,
   showOverlay: true,
+  termsAccepted: false,
   scale: 1,
   positionVersion: 0,
   editorLoading: false,

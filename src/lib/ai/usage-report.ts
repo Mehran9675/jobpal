@@ -48,7 +48,7 @@ function money(value: unknown, currency = 'USD'): string | null {
 
 /**
  * Queries the provider's own usage/billing endpoints where they exist.
- * Providers without such an API fall back to JobPal's locally counted usage.
+ * Providers without such an API fall back to JobPaal's locally counted usage.
  */
 export async function fetchProviderUsage(connection: ProviderConnection): Promise<ProviderUsageReport> {
   const providerId = connection.providerId;
@@ -103,7 +103,7 @@ export async function fetchProviderUsage(connection: ProviderConnection): Promis
       return {
         supported: false,
         title: 'OpenAI usage',
-        message: 'The OpenAI organisation usage endpoint requires an admin key. JobPal’s local counters are shown instead.',
+        message: 'The OpenAI organisation usage endpoint requires an admin key. JobPaal’s local counters are shown instead.',
         rows: [],
       };
     }
@@ -131,7 +131,7 @@ export async function fetchProviderUsage(connection: ProviderConnection): Promis
     supported: false,
     title: 'Account usage not available',
     message:
-      'This provider does not expose an account-usage API. JobPal still counts every call and the token usage reported by the model itself.',
+      'This provider does not expose an account-usage API. JobPaal still counts every call and the token usage reported by the model itself.',
     rows: [],
   };
 }

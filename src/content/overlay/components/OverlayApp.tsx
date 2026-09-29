@@ -26,7 +26,7 @@ export function OverlayApp() {
   }, [state.showOverlay]);
 
   return (
-    <Show if={state.showOverlay}>
+    <Show if={state.showOverlay && state.termsAccepted}>
       <div className="jp-root" ref={rootRef} style={{ fontFamily: OVERLAY_FONT }}>
         <OverlayErrorBoundary>
           <Fab />

@@ -1,4 +1,5 @@
 import type { AppSettings, DocumentSettings, PromptConfig, RuleDef, SectionId } from '@/types';
+import { TERMS_VERSION } from './legal';
 
 export const DEFAULT_TEMPLATE_ID = 'essential';
 
@@ -32,7 +33,6 @@ export const DEFAULT_DOCUMENT_SETTINGS: DocumentSettings = {
   hiddenSections: [],
   outputFormat: 'pdf',
   headlineMode: 'tailored',
-  faithfulness: 60,
   allowGenerateWithoutDescription: false,
   fileSource: 'generated',
   includePhoto: false,
@@ -214,6 +214,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     autoOpenSidePanel: false,
     showOverlay: true,
   },
+  terms: { version: TERMS_VERSION },
 };
 
 /**

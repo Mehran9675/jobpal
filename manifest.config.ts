@@ -12,7 +12,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
   const base: Record<string, unknown> = {
     manifest_version: 3,
     name: '__MSG_extName__',
-    short_name: 'JobPal',
+    short_name: 'JobPaal',
     description: '__MSG_extDescription__',
     version: pkg.version,
     default_locale: 'en',
@@ -24,7 +24,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
       128: 'icons/icon128.png',
     },
     action: {
-      default_title: 'JobPal',
+      default_title: 'JobPaal',
       default_popup: 'popup.html',
       default_icon: {
         16: 'icons/icon16.png',
@@ -75,7 +75,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
   if (isFirefox) {
     delete base.minimum_chrome_version;
     base.sidebar_action = {
-      default_title: 'JobPal',
+      default_title: 'JobPaal',
       default_icon: { 16: 'icons/icon16.png', 32: 'icons/icon32.png' },
       default_panel: 'sidepanel.html',
     };
@@ -97,7 +97,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
 export function manifestPlugin(target: 'chrome' | 'firefox'): Plugin {
   let outDir = 'dist';
   return {
-    name: 'jobpal-manifest',
+    name: 'jobpaal-manifest',
     apply: 'build',
     configResolved(config) {
       outDir = config.build.outDir;

@@ -30,4 +30,4 @@ export function isAIRequiredError(error: unknown): boolean {
 }
 
 export const AI_REQUIRED_MESSAGE =
-  'Connect an AI provider first - open JobPal → AI providers, add your key (or point JobPal at a local model), then press “Save & activate”.';
+  'Connect an AI provider first - open JobPaal → AI providers, add your key (or point JobPaal at a local model), then press “Save & activate”.';

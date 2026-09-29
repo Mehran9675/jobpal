@@ -5,5 +5,5 @@ export function jobBadgeFor(context: PageContext, job: ExtractedJob | null): str
   if (context.hasApplicationForm) return 'Application form detected';
   if (context.hasJob) return 'Job posting detected';
   if (job) return 'Using your manual selection';
-  return 'Not detected - guide JobPal';
+  return 'Not detected - guide JobPaal';
 }

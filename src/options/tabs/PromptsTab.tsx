@@ -67,7 +67,7 @@ export function PromptsTab({ settings, patchSettings }: { settings: AppSettings;
         <div>
           <h1 className="main__title">Prompts & style</h1>
           <p className="main__subtitle">
-            JobPal handles the prompting for you, but you are in charge of the voice. Global instructions apply to every AI call; task templates control how each
+            JobPaal handles the prompting for you, but you are in charge of the voice. Global instructions apply to every AI call; task templates control how each
             step is asked.
           </p>
         </div>
@@ -92,7 +92,7 @@ export function PromptsTab({ settings, patchSettings }: { settings: AppSettings;
       </header>
 
       <div className="grid grid--2">
-        <SectionCard title="Global instructions" hint="Highest priority after JobPal's truthfulness rules. Applied to every call.">
+        <SectionCard title="Global instructions" hint="Highest priority after JobPaal's truthfulness rules. Applied to every call.">
           <Textarea
             rows={9}
             value={prompts.globalInstructions}
@@ -145,7 +145,7 @@ export function PromptsTab({ settings, patchSettings }: { settings: AppSettings;
             </div>
             <div className="chips">{prompts.avoidWords.map(renderAvoidWord)}</div>
           </Field>
-          <Field label="Themes to emphasise" hint="JobPal will surface these wherever they are truthful.">
+          <Field label="Themes to emphasise" hint="JobPaal will surface these wherever they are truthful.">
             <div className="row mb-1">
               <Input
                 value={emphasizeInput}

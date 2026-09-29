@@ -16,7 +16,7 @@ export function activeConnection(settings: AppSettings): ProviderConnection | nu
 
 /**
  * Every AI-powered feature goes through this guard. Without an active,
- * credentialed provider JobPal refuses to run the task instead of silently
+ * credentialed provider JobPaal refuses to run the task instead of silently
  * producing locally generated output.
  */
 export function requireAIConnection(settings: AppSettings): { providerId: string; connection: ProviderConnection } {
@@ -81,6 +81,5 @@ export function buildTaskContext(settings: AppSettings, profile: Profile): TaskC
     config: settings.prompts,
     chat: chatRunner,
     profile,
-    faithfulness: settings.document.faithfulness,
   };
 }

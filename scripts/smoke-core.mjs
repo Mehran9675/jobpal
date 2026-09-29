@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const outDir = join(tmpdir(), 'jobpal-smoke-core');
+const outDir = join(tmpdir(), 'jobpaal-smoke-core');
 mkdirSync(outDir, { recursive: true });
 const bundlePath = join(outDir, 'bundle.mjs');
 
@@ -133,11 +133,9 @@ assert(DEFAULT_SETTINGS.ai.fallbackToLocal === undefined, 'there is no local fal
 // --- Prompts --------------------------------------------------------------
 const system = buildSystemPrompt({ globalInstructions: 'Never lie.', tone: 'concise', writingStyle: '', avoidWords: ['synergy'], emphasize: ['scale'], templates: {} }, 'tailorResume');
 assert(system.includes('Never lie.') && system.includes('synergy') && system.includes('scale'), 'system prompt assembled');
-const exactPrompt = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'tailorResume', 90);
-assert(exactPrompt.includes('Wording level: EXACT') && exactPrompt.includes('HARD TRUTH RULES'), 'exact wording level instructions');
-const rewordPrompt = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'tailorResume', 10);
-assert(rewordPrompt.includes('Wording level: REWORDED') && !rewordPrompt.includes('Wording level: EXACT'), 'rewritten wording level instructions');
-const otherTask = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'coverLetter', 10);
+const exactPrompt = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'tailorResume');
+assert(exactPrompt.includes('Wording level: EXACT') && exactPrompt.includes('HARD TRUTH RULES'), 'resume tailoring always uses the exact wording level');
+const otherTask = buildSystemPrompt({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'coverLetter');
 assert(!otherTask.includes('Wording level'), 'wording level only applies to resume tailoring');
 const rendered = renderTemplate(taskTemplate({ globalInstructions: '', tone: 'professional', writingStyle: '', avoidWords: [], emphasize: [], templates: {} }, 'analyzeJob'), { jobDescription: 'JD', candidateSkills: 'TS', candidateSeniority: 'senior', candidateSummary: 's' });
 assert(rendered.includes('JD') && rendered.includes('TS'), 'template placeholders replaced');
@@ -158,7 +156,7 @@ assert(parseLooseJson('not json') === null, 'garbage rejected');
 const resume = profileToResume(profile, { template: getTemplate('aurora'), settings: { templateId: 'aurora', pageSize: 'a4', hiddenSections: [], outputFormats: ['pdf'], includePhoto: false, fileNamePattern: 'x' } });
 assert(resume.work.length === 2, 'work mapped');
 assert(resume.basics.name === 'Ada Lovelace', 'name mapped');
-assert(resume.meta.generator === 'JobPal', 'meta set');
+assert(resume.meta.generator === 'JobPaal', 'meta set');
 const order = effectiveSectionOrder(getTemplate('aurora'), { templateId: 'aurora', pageSize: 'a4', hiddenSections: ['languages'], outputFormats: ['pdf'], includePhoto: false, fileNamePattern: 'x' });
 assert(!order.includes('languages'), 'hidden sections filtered');
 

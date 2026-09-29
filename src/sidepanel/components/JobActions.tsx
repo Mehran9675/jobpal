@@ -37,7 +37,7 @@ export function JobActions({
       <Button variant="ghost" icon={<IconRobot size={15} />} disabled={!hasJob} onClick={onQueue}>
         Queue
       </Button>
-      <Button variant={hasJob ? 'ghost' : 'outline'} icon={<IconTarget size={15} />} title="Point JobPal at the job title, company and description yourself" onClick={onGuide}>
+      <Button variant={hasJob ? 'ghost' : 'outline'} icon={<IconTarget size={15} />} title="Point JobPaal at the job title, company and description yourself" onClick={onGuide}>
         Select fields
       </Button>
       <Button variant="outline" icon={<IconPaste size={15} />} title="Paste a job description when this page has none" onClick={onPaste}>

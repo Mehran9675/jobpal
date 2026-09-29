@@ -97,7 +97,7 @@ export function DashboardTab({
         <div>
           <h1 className="main__title">Dashboard</h1>
           <p className="main__subtitle">
-            Your application pipeline at a glance. JobPal tailors every document to the posting, then either fills the form for you or applies on your behalf.
+            Your application pipeline at a glance. JobPaal tailors every document to the posting, then either fills the form for you or applies on your behalf.
           </p>
         </div>
         <div className="row">
@@ -183,7 +183,7 @@ export function DashboardTab({
             <IconRobot size={16} /> Agent
           </div>
           <div className="panel__hint">
-            Let JobPal work through your queue in the background. The agent needs an active AI connection; rules decide what to skip and when it may submit.
+            Let JobPaal work through your queue in the background. The agent needs an active AI connection; rules decide what to skip and when it may submit.
           </div>
           <Show if={!status.ready}>
             <div className="card card--flat mb-2">
@@ -224,7 +224,7 @@ export function DashboardTab({
                 onClick={() =>
                   void action('agent.start')
                     .then(() => undefined)
-                    .catch((error) => console.warn('[jobpal] could not start agent:', error))
+                    .catch((error) => console.warn('[jobpaal] could not start agent:', error))
                 }
               >
                 Start
@@ -255,7 +255,7 @@ export function DashboardTab({
           <EmptyState
             icon="◈"
             title="No applications yet"
-            text="Open a job posting in your browser and use the JobPal overlay or popup to tailor your first set of documents."
+            text="Open a job posting in your browser and use the JobPaal overlay or popup to tailor your first set of documents."
           />
         </Show>
         <Show if={applications.length > 0}>

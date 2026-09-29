@@ -478,7 +478,7 @@ export function AITab({ settings, patchSettings }: { settings: AppSettings; patc
             <IconCpu size={16} />
             <div className="list-item__main">
               <div className="list-item__title">Prompts run inside the extension</div>
-              <div className="list-item__meta">JobPal builds every prompt locally and sends it straight to your provider - there is no middleman server.</div>
+              <div className="list-item__meta">JobPaal builds every prompt locally and sends it straight to your provider - there is no middleman server.</div>
             </div>
           </div>
           <div className="list-item">

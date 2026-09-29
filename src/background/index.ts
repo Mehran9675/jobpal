@@ -10,6 +10,7 @@ import { aiStatusFor } from '@/lib/ai/status';
 import { getUsage, recordUsage, resetUsage } from '@/lib/ai/usage';
 import { fetchProviderUsage } from '@/lib/ai/usage-report';
 import { AppError, AI_REQUIRED_MESSAGE } from '@/lib/errors';
+import { termsAccepted } from '@/lib/legal';
 import { findApplicationForUrl, findJobForUrl } from '@/lib/applications/match';
 import { cancelToken, createToken, isCancelled, releaseToken, tokenKeyFor } from './cancel';
 import { parseResumeText } from '@/lib/ai/tasks';
@@ -201,6 +202,15 @@ function registerHandlers(): void {
   router.handle('pipeline.cancel', (_payload, sender) => {
     const key = tokenKeyFor(sender.tab?.id);
     cancelToken(key);
+  });
+
+  router.handle('pipeline.answerOne', async ({ question, job }) => {
+    const { context } = await buildTaskContextForProfile();
+    const { answerQuestions } = await import('@/lib/ai/tasks');
+    const [answered] = await answerQuestions(context, job, [{ id: 'manual-question', label: question, type: 'textarea', required: false, answer: '' }]);
+    const answer = answered?.answer?.trim();
+    if (!answer) throw new AppError('The AI did not return an answer for that question. Nothing was saved - try again.', 'AI_ERROR');
+    return { answer };
   });
 
   router.handle('pipeline.regenerate', async ({ applicationId }) => {
@@ -512,7 +522,7 @@ function registerHandlers(): void {
     };
     const exportObject = {
       exportedAt: new Date().toISOString(),
-      generator: 'JobPal',
+      generator: 'JobPaal',
       note: 'API keys and OAuth tokens are intentionally excluded from backups.',
       settings: safeSettings,
       profiles,
@@ -672,19 +682,24 @@ function installContextMenus(): void {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: 'jobpal-tailor',
-      title: 'JobPal: tailor documents for this job',
+      title: 'JobPaal: tailor documents for this job',
       contexts: ['page'],
     });
-    chrome.contextMenus.create({ id: 'jobpal-fill', title: 'JobPal: fill this application form', contexts: ['page'] });
-    chrome.contextMenus.create({ id: 'jobpal-queue', title: 'JobPal: add this job to my agent queue', contexts: ['page'] });
+    chrome.contextMenus.create({ id: 'jobpal-fill', title: 'JobPaal: fill this application form', contexts: ['page'] });
+    chrome.contextMenus.create({ id: 'jobpal-queue', title: 'JobPaal: add this job to my agent queue', contexts: ['page'] });
     chrome.contextMenus.create({ type: 'separator', id: 'jobpal-sep', contexts: ['page'] });
-    chrome.contextMenus.create({ id: 'jobpal-scan-profile', title: 'JobPal: scan this LinkedIn profile', contexts: ['page'] });
-    chrome.contextMenus.create({ id: 'jobpal-open', title: 'JobPal: open management page', contexts: ['page', 'action'] });
+    chrome.contextMenus.create({ id: 'jobpal-scan-profile', title: 'JobPaal: scan this LinkedIn profile', contexts: ['page'] });
+    chrome.contextMenus.create({ id: 'jobpal-open', title: 'JobPaal: open management page', contexts: ['page', 'action'] });
   });
 
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === 'jobpal-open') {
       await openOptionsPage();
+      return;
+    }
+    const settings = await getSettings();
+    if (!termsAccepted(settings)) {
+      await notify('Accept the terms first', 'Open JobPaal and accept the Terms of Use and Privacy Policy before using the extension.', 'warning');
       return;
     }
     if (!tab?.id) return;

@@ -45,7 +45,7 @@ export function WelcomeBanner({ onNavigate }: { onNavigate: (tab: string) => voi
       <div className="row row--between" style={{ alignItems: 'flex-start' }}>
         <div>
           <div className="panel__title">
-            <IconSparkles size={16} /> Welcome to JobPal
+            <IconSparkles size={16} /> Welcome to JobPaal
           </div>
           <div className="panel__hint">Four quick steps and your next application will take seconds instead of an hour.</div>
         </div>

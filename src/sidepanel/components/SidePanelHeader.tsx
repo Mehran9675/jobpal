@@ -7,7 +7,7 @@ export function SidePanelHeader({ siteLabel, onOpenManagement }: { siteLabel: st
       <div className="row">
         <div className="popup__logo">◈</div>
         <div>
-          <div className="popup__name">JobPal</div>
+          <div className="popup__name">JobPaal</div>
           <div className="popup__tagline">{siteLabel}</div>
         </div>
       </div>

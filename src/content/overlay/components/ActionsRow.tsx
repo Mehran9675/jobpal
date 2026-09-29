@@ -46,7 +46,7 @@ export function ActionsRow() {
       onClick: () => patchOverlay({ guideOpen: !state.guideOpen }),
     },
     {
-      label: state.context.site === 'linkedin-profile' ? 'Scan profile' : 'Open JobPal',
+      label: state.context.site === 'linkedin-profile' ? 'Scan profile' : 'Open JobPaal',
       icon: 'gear',
       variant: 'jp-btn ghost',
       disabled: false,

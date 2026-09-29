@@ -34,7 +34,7 @@ export function RecentApplicationsCard({
       <Show if={!hasApplications}>
         <EmptyState
           title="No applications yet"
-          text="Open a job posting and press “Tailor & fill” - JobPal will build your documents and archive them here."
+          text="Open a job posting and press “Tailor & fill” - JobPaal will build your documents and archive them here."
         />
       </Show>
       <Show if={hasApplications}>

@@ -1,5 +1,6 @@
 import { createRouter } from '@/lib/messaging';
 import { getSettings, watchStorage } from '@/lib/storage';
+import { termsAccepted } from '@/lib/legal';
 import { ensureOverlay, overlayMounted, refreshContext, setGuideOpen, setProgress, setStatus, toggleOverlay } from './overlay';
 import * as actions from './actions';
 
@@ -31,7 +32,11 @@ if (isTopFrame) {
   }
 
   watchStorage((changes) => {
-    if (changes['jobpal.settings'] && overlayMounted()) void refreshContext();
+    if (!changes['jobpal.settings']) return;
+    // Accepting the terms or enabling the overlay from the popup should bring
+    // the button back without a page reload.
+    if (overlayMounted()) void refreshContext();
+    else mount();
   });
 
   chrome.runtime.onMessage.addListener((message: { type?: string; name?: string; data?: unknown }) => {
@@ -122,10 +127,11 @@ function mount(): void {
     return;
   }
   if (!shouldMount()) return;
-  ensureOverlay();
-  void refreshContext();
   void getSettings().then((settings) => {
-    if (settings.ui.autoOpenSidePanel) setStatus('JobPal is ready - tailor your documents for this page.', 'info');
+    // The overlay stays hidden until the terms of use are accepted.
+    if (!termsAccepted(settings)) return;
+    ensureOverlay();
+    if (settings.ui.autoOpenSidePanel) setStatus('JobPaal is ready - tailor your documents for this page.', 'info');
   });
 }
 

@@ -61,7 +61,7 @@ export function DescriptionStatus() {
 
       <Show if={showScopeHint}>
         <div className="jp-guide-hint">
-          JobPal covers the common cases - single-page forms, Easy Apply and standard ATS pages (Greenhouse, Lever, Workday, Ashby, SmartRecruiters...). For
+          JobPaal covers the common cases - single-page forms, Easy Apply and standard ATS pages (Greenhouse, Lever, Workday, Ashby, SmartRecruiters...). For
           unusual forms, pick or paste the description here and fill the rest yourself; your files stay available below to download and attach.
         </div>
       </Show>

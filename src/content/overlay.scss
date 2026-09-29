@@ -109,41 +109,6 @@
   line-height: 1.45;
 }
 
-.jp-slider {
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--jp-border);
-  background: rgba(255, 255, 255, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.jp-slider-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.jp-slider-value {
-  font-size: 11px;
-  font-weight: 650;
-  color: var(--jp-accent);
-}
-
-.jp-range {
-  width: 100%;
-  accent-color: var(--jp-accent);
-}
-
-.jp-slider-ends {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10.5px;
-  color: var(--jp-muted);
-}
-
 .jp-editor {
   position: fixed;
   inset: 0;
@@ -297,6 +262,26 @@
   gap: 6px;
   font-size: 11.5px;
   color: var(--jp-text);
+}
+
+.jp-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.jp-manual-block {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.jp-bank {
+  display: flex;
+  flex-direction: column;
 }
 
 .jp-mini-primary {
@@ -661,6 +646,11 @@
   padding: 4px 7px;
   cursor: pointer;
   font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  line-height: 1.2;
 }
 
 .jp-mini:hover {

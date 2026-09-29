@@ -76,7 +76,7 @@ const indexedDbStub = {
 try {
   globalThis.chrome = chromeStub;
   globalThis.indexedDB = indexedDbStub;
-  const evaluate = new Function(`"use strict";\n${code}\n//# sourceURL=jobpal-background-smoke.js`);
+  const evaluate = new Function(`"use strict";\n${code}\n//# sourceURL=jobpaal-background-smoke.js`);
   evaluate.call(undefined);
 } catch (error) {
   console.error('[smoke:background] bundle threw during evaluation:');

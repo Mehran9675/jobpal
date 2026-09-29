@@ -1,6 +1,8 @@
 import { useOverlayState } from '../store';
 import { copyText } from '../actions';
 import { AnswerRow } from './AnswerRow';
+import { ManualEntryWriter } from './ManualEntryWriter';
+import { ManualEntryList } from './ManualEntryList';
 import { Icon } from './Icon';
 import { Show } from '@/ui/components';
 
@@ -29,10 +31,24 @@ export function AnswersSection() {
       </div>
       <Show if={!hasAnswers}>
         <div className="jp-guide-value">
-          No written answers yet. They appear here after JobPal answers screening questions - and stay available to copy even if autofill cannot place them.
+          No written answers yet. They appear here after JobPaal answers screening questions - and stay available to copy even if autofill cannot place them.
         </div>
       </Show>
       <Show if={hasAnswers}>{state.answers.map(renderAnswer)}</Show>
+
+      <div className="jp-manual-block">
+        <div className="jp-guide-label">
+          <Icon name="keyboard" size={13} />
+          <span>Add a question or field JobPaal missed</span>
+        </div>
+        <div className="jp-guide-hint">
+          Type it in, draft an answer with AI, send it straight to the field on the page, or save it so matching fields are filled automatically from now on.
+        </div>
+        <ManualEntryWriter />
+        <Show if={state.bank.length > 0}>
+          <ManualEntryList />
+        </Show>
+      </div>
     </div>
   );
 }

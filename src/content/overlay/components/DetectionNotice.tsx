@@ -14,7 +14,7 @@ export function DetectionNotice() {
     <div className="jp-detect">
       <div className="jp-detect-title">
         <Icon name="alert" size={13} />
-        <span>JobPal could not detect everything on this page</span>
+        <span>JobPaal could not detect everything on this page</span>
       </div>
       <ul className="jp-detect-list">{state.health.issues.map(renderIssue)}</ul>
       <div className="jp-detect-hint">

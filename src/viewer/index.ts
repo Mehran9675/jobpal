@@ -34,7 +34,7 @@ async function blobUrl(record: DocumentRecord): Promise<string> {
 async function render(): Promise<void> {
   if (!root) return;
   if (!documentId) {
-    renderError('No document was specified.', 'Open this viewer from JobPal → Documents → View.');
+    renderError('No document was specified.', 'Open this viewer from JobPaal → Documents → View.');
     return;
   }
   let record: DocumentRecord | undefined;
@@ -45,12 +45,12 @@ async function render(): Promise<void> {
     return;
   }
   if (!record) {
-    renderError('Document not found.', 'It may have been deleted. Open JobPal → Documents to check.');
+    renderError('Document not found.', 'It may have been deleted. Open JobPaal → Documents to check.');
     return;
   }
 
   const { header, toolbar, body } = shell();
-  document.title = `${record.filename} - JobPal`;
+  document.title = `${record.filename} - JobPaal`;
 
   const meta = el('div');
   meta.append(el('div', 'viewer__title', record.filename));

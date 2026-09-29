@@ -3,8 +3,8 @@ import { Show } from '@/ui/components';
 import { JobCard } from './JobCard';
 import { ActionsRow } from './ActionsRow';
 import { AiNotice } from './AiNotice';
+import { AutofillNotice } from './AutofillNotice';
 import { DetectionNotice } from './DetectionNotice';
-import { TailoringSlider } from './TailoringSlider';
 import { NoJobNotice } from './NoJobNotice';
 import { MatchPanel } from './MatchPanel';
 import { GuidePanel } from './GuidePanel';
@@ -34,8 +34,10 @@ export function MainView() {
       <Show if={state.jobPickerOpen}>
         <JobPicker />
       </Show>
-      <TailoringSlider />
       <ActionsRow />
+      <Show if={state.context.hasApplicationForm}>
+        <AutofillNotice />
+      </Show>
       {/*<Show if={!state.aiReady}>*/}
       {/*  <AiNotice />*/}
       {/*</Show>*/}

@@ -62,7 +62,7 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
       await sendMessage('app.documentsChanged', undefined).catch(() => undefined);
       await loadUploaded();
       await patchDocument(kind === 'resume' ? { uploadedResumeId: record.id, fileSource: 'uploaded' } : { uploadedCoverLetterId: record.id, fileSource: 'uploaded' });
-      toast.success(`${file.name} saved - JobPal will attach your own file.`);
+      toast.success(`${file.name} saved - JobPaal will attach your own file.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error));
     }
@@ -217,7 +217,7 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
 
       <SectionCard
         title="My own files"
-        hint="Prefer applying with files you already have? Upload your own resume and cover letter, then switch JobPal to attach them instead of the generated documents."
+        hint="Prefer applying with files you already have? Upload your own resume and cover letter, then switch JobPaal to attach them instead of the generated documents."
       >
         <Toggle
           checked={document.fileSource === 'uploaded'}
@@ -276,25 +276,6 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
               <option value="tailored">Tailor per job (recommended)</option>
               <option value="profile">Always use my profile headline</option>
             </Select>
-          </Field>
-          <Field
-            label="Resume wording"
-            hint="Left reworks your headline, summary and experience descriptions to match the job. Right keeps your own wording almost verbatim. Either way JobPal never adds experience, skills or seniority you did not report."
-          >
-            <div className="row" style={{ gap: 10, alignItems: 'center' }}>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={document.faithfulness ?? 60}
-                onChange={(event) => void patchDocument({ faithfulness: Number(event.target.value) })}
-                style={{ flex: 1, accentColor: 'var(--accent)' }}
-              />
-              <span className="tiny muted" style={{ minWidth: 66, textAlign: 'right' }}>
-                {(document.faithfulness ?? 60) >= 70 ? 'Exact' : (document.faithfulness ?? 60) >= 40 ? 'Balanced' : 'Reworded'}
-              </span>
-            </div>
           </Field>
           <Field
             label="Missing job description"

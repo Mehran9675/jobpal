@@ -95,7 +95,7 @@ async function maybeWarnBudget(summary: UsageSummary): Promise<void> {
     const { notify } = await import('@/background/notify');
     await notify(
       'Token budget reached',
-      `You have used ${formatTokens(summary.total.totalTokens)} of your ${formatTokens(budget)} token budget. Open JobPal → AI providers to review usage.`,
+      `You have used ${formatTokens(summary.total.totalTokens)} of your ${formatTokens(budget)} token budget. Open JobPaal → AI providers to review usage.`,
       'warning',
     );
   } catch {

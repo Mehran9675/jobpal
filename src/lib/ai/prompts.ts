@@ -9,7 +9,7 @@ export const TASK_LABELS: Record<TaskId, { label: string; description: string }>
   matchScore: { label: 'Score job match', description: 'Produce a 0-100 fit score with reasoning.' },
 };
 
-export const SYSTEM_PROMPT_BASE = `You are JobPal, an expert career strategist, ATS (Applicant Tracking System) optimisation specialist and professional resume writer.
+export const SYSTEM_PROMPT_BASE = `You are JobPaal, an expert career strategist, ATS (Applicant Tracking System) optimisation specialist and professional resume writer.
 
 Hard rules you must always follow:
 1. NEVER invent or upgrade employers, job titles, seniority levels (Junior, Senior, Lead, Staff, Principal, Head, Manager, Expert or similar), dates, degrees, certifications, tools or metrics that are not present in the candidate data provided. The candidate's level is whatever their own data shows - never copy the posting's seniority onto them. You may rephrase, reorder, prioritise and re-emphasise truthfully.
@@ -208,22 +208,17 @@ const TONE_LINES: Record<PromptConfig['tone'], string> = {
 };
 
 const HARD_TRUTH_RULES =
-  'HARD TRUTH RULES (never relax these, whatever the wording level says): never invent, infer or upgrade employers, job titles, seniority levels (Junior, Senior, Lead, Staff, Principal, Head, Manager, Expert), dates, education, certifications, tools, skills, metrics or achievements. Only rephrase, reorder, trim and emphasise information that is already present in the candidate profile. If a job requirement is absent from the candidate data, leave it out instead of adding it.';
+  'HARD TRUTH RULES (never relax these): never invent, infer or upgrade employers, job titles, seniority levels (Junior, Senior, Lead, Staff, Principal, Head, Manager, Expert), dates, education, certifications, tools, skills, metrics or achievements. Only rephrase, reorder, trim and emphasise information that is already present in the candidate profile. If a job requirement is absent from the candidate data, leave it out instead of adding it.';
 
-/** The wording level chosen on the resume-tailoring slider, as a prompt block. */
-export function faithfulnessInstruction(faithfulness: number): string {
-  if (faithfulness >= 70) {
-    return `${HARD_TRUTH_RULES}\nWording level: EXACT. Stay very close to the candidate's own words: keep the headline, summary and experience descriptions almost verbatim and only trim, reorder and re-emphasise. Mirror the posting's vocabulary only for skills and tools that already exist in the profile. Never rewrite job titles.`;
-  }
-  if (faithfulness >= 40) {
-    return `${HARD_TRUTH_RULES}\nWording level: BALANCED. Keep the candidate's own job titles and headline wording unchanged. You may rewrite the summary and the experience descriptions to echo the posting's language, always within the facts provided.`;
-  }
-  return `${HARD_TRUTH_RULES}\nWording level: REWORDED. You may rephrase the headline and job titles into a truthful equivalent of the candidate's real role (same level and scope) and rewrite the summary and experience descriptions as strongly as possible for this posting. Higher seniority than the candidate's own data shows is never allowed.`;
-}
+/**
+ * Resume tailoring always uses the exact wording level: optimise presentation
+ * without changing a single fact. There is no configurable level.
+ */
+export const EXACT_WORDING_INSTRUCTION = `${HARD_TRUTH_RULES}\nWording level: EXACT. Stay very close to the candidate's own words: keep the headline, summary and experience descriptions almost verbatim and only trim, reorder and re-emphasise. Mirror the posting's vocabulary only for skills and tools that already exist in the profile. Never rewrite job titles.`;
 
-export function buildSystemPrompt(config: PromptConfig, task: TaskId, faithfulness?: number): string {
+export function buildSystemPrompt(config: PromptConfig, task: TaskId): string {
   const parts = [SYSTEM_PROMPT_BASE, TONE_LINES[config.tone] ?? ''];
-  if (task === 'tailorResume' && typeof faithfulness === 'number') parts.push(faithfulnessInstruction(faithfulness));
+  if (task === 'tailorResume') parts.push(EXACT_WORDING_INSTRUCTION);
   if (config.writingStyle.trim()) parts.push(`Writing style: ${config.writingStyle.trim()}`);
   if (config.avoidWords.length > 0) parts.push(`Never use these words or phrases: ${config.avoidWords.join(', ')}.`);
   if (config.emphasize.length > 0) parts.push(`Emphasise these themes where truthful: ${config.emphasize.join(', ')}.`);

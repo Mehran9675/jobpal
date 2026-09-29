@@ -220,7 +220,7 @@ export async function renderResumeDocx(resume: ResumeJson, template: ResumeTempl
   for (const section of order) renderSection(section);
 
   const document = new Document({
-    creator: 'JobPal',
+    creator: 'JobPaal',
     title: `${resume.basics.name} - Resume`,
     styles: {
       default: {
@@ -267,7 +267,7 @@ export async function renderPlainDocx(
       children.push(new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: line, size: typo.size })] }));
     }
   }
-  const document = new Document({ creator: 'JobPal', title: plain.title, sections: [{ children }] });
+  const document = new Document({ creator: 'JobPaal', title: plain.title, sections: [{ children }] });
   const base64 = await Packer.toBase64String(document);
   return base64ToUint8(base64);
 }
@@ -307,7 +307,7 @@ export async function renderCoverLetterDocx(
       }),
     );
   }
-  const document = new Document({ creator: 'JobPal', title: `${resume.basics.name} - Cover Letter`, sections: [{ children }] });
+  const document = new Document({ creator: 'JobPaal', title: `${resume.basics.name} - Cover Letter`, sections: [{ children }] });
   const base64 = await Packer.toBase64String(document);
   return base64ToUint8(base64);
 }

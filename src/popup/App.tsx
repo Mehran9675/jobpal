@@ -6,7 +6,8 @@ import { findApplicationForUrl } from '@/lib/applications/match';
 import { formatTokens, todayUsage } from '@/lib/ai/usage';
 import { matchFromAnalysis } from '@/lib/job/match';
 import { PasteJobModal, type PastedJobInput } from '@/ui/components/PasteJobModal';
-import { Show, Toggle, type MatchCardData } from '@/ui/components';
+import { Show, TermsNotice, Toggle, type MatchCardData } from '@/ui/components';
+import { termsAccepted } from '@/lib/legal';
 import { useToast } from '@/ui/components/Toast';
 import { useAgent, useApplications, usePageContext, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
 import { buildPastedJob } from '@/lib/job/pasted';
@@ -139,13 +140,13 @@ export function PopupApp() {
       const questions = probe?.found ? probe.questions : undefined;
       const result = await sendMessage('pipeline.tailor', { job, questions, form: { hasCoverLetterField: probe?.hasCoverLetterField } }, { timeout: 240000 });
       const report = await sendTabMessage(tabId as number, 'page.fillForm', { documentIds: result.documents.map((document) => document.id), answers: result.answers }, { timeout: 120000 });
-      return `Documents ready - filled ${report.filled} fields. Review the form, then submit.`;
+      return `Documents ready - filled ${report.filled} fields. Review the form, then submit.${report.filled > 0 ? ' If the site flags a field as empty, click it and type a character.' : ''}`;
     });
 
   const fillOnly = () =>
     run('fill', async () => {
       const report = await sendTabMessage(tabId as number, 'page.fillForm', { documentIds: documents.map((document) => document.id) }, { timeout: 120000 });
-      return `Filled ${report.filled} of ${report.total} fields.`;
+      return `Filled ${report.filled} of ${report.total} fields.${report.filled > 0 ? ' If the site flags a field as empty, click it and type a character.' : ''}`;
     });
 
   const checkMatch = () =>
@@ -242,6 +243,17 @@ export function PopupApp() {
 
   const openApplication = useCallback((application: ApplicationRecord) => void openOptions(`applications/${application.id}`), [openOptions]);
 
+  if (!termsAccepted(settings)) {
+    return (
+      <div className="popup">
+        <PopupHeader onOpenManagement={() => void openOptions('dashboard')} />
+        <div className="popup__body">
+          <TermsNotice onReview={() => void openOptions('dashboard')} />
+        </div>
+      </div>
+    );
+  }
+
   const actions: ContextAction[] = [
     {
       label: 'Tailor & fill',
@@ -274,7 +286,7 @@ export function PopupApp() {
       icon: 'target',
       variant: context?.hasJob ? 'outline' : 'primary',
       disabled: false,
-      title: 'Point JobPal at the job title, company and description yourself',
+      title: 'Point JobPaal at the job title, company and description yourself',
       onSelect: () => void guideMe(),
     },
     {
@@ -297,7 +309,7 @@ export function PopupApp() {
   ];
 
   const title = context?.jobTitle ?? context?.title ?? 'Open a job posting to get started';
-  const meta = context?.company ?? (context?.url ? new URL(context.url).hostname : 'JobPal watches job pages and application forms');
+  const meta = context?.company ?? (context?.url ? new URL(context.url).hostname : 'JobPaal watches job pages and application forms');
   const tokensToday = usage ? `${formatTokens(todayUsage(usage).totalTokens)}` : '';
   const showAgentProgress = Boolean(agent?.running) && !agent?.currentItem;
   const showAnswers = (currentApplication?.answers ?? []).length > 0;

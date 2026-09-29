@@ -7,7 +7,7 @@ export function PopupHeader({ onOpenManagement }: { onOpenManagement: () => void
       <div className="popup__brand">
         <div className="popup__logo">◈</div>
         <div>
-          <div className="popup__name">JobPal</div>
+          <div className="popup__name">JobPaal</div>
           <div className="popup__tagline">AI applications, on autopilot</div>
         </div>
       </div>

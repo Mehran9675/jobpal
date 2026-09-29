@@ -541,12 +541,6 @@ export interface DocumentSettings {
   outputFormat: DocFormat;
   /** 'tailored' rewrites the headline per job; 'profile' always uses your profile headline. */
   headlineMode: 'tailored' | 'profile';
-  /**
-   * How closely generated documents stick to the candidate's own words:
-   * 100 = keep everything as reported, 0 = rework wording hard for the job.
-   * Inventing experience, skills or seniority is never allowed at any level.
-   */
-  faithfulness: number;
   /** Override: allow generating documents even when no job description was found. */
   allowGenerateWithoutDescription: boolean;
   /** Attach the user's own uploads instead of the generated files. */
@@ -629,8 +623,14 @@ export interface UISettings {
   accent: string;
   compactDensity: boolean;
   autoOpenSidePanel: boolean;
-  /** Show the floating JobPal button and panel on web pages. */
+  /** Show the floating JobPaal button and panel on web pages. */
   showOverlay: boolean;
+}
+
+export interface TermsSettings {
+  /** Version of the terms the user last accepted. */
+  version: number;
+  acceptedAt?: number;
 }
 
 export interface AppSettings {
@@ -641,6 +641,7 @@ export interface AppSettings {
   automation: AutomationSettings;
   autofill: AutofillSettings;
   ui: UISettings;
+  terms: TermsSettings;
 }
 
 /* ------------------------------------------------------------------ */

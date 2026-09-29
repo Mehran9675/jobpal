@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApplications, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
+import { TermsGate } from '@/ui/components';
+import { TERMS_VERSION, termsAccepted } from '@/lib/legal';
 import { parseHash, type AppRoute } from './helpers/parseHash';
 import type { NavItem } from './constants/nav';
 import { AppSidebar } from './components/AppSidebar';
@@ -35,8 +37,16 @@ export function OptionsApp() {
 
   const openNav = useCallback((item: NavItem) => navigate(item.id), [navigate]);
 
+  const acceptTerms = useCallback(async () => {
+    await patch({ terms: { version: TERMS_VERSION, acceptedAt: Date.now() } });
+  }, [patch]);
+
   const pendingCount = useMemo(() => applications.filter((application) => application.status === 'ready').length, [applications]);
   const providerLabel = settings.ai.activeProviderId ? `AI: ${settings.ai.activeProviderId}` : 'AI: not connected';
+
+  if (!termsAccepted(settings)) {
+    return <TermsGate onAccept={acceptTerms} />;
+  }
 
   return (
     <div className="shell">

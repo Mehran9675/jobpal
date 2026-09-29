@@ -1,5 +1,5 @@
 import type { AnswerRecord, ExtractedJob, ID, JobRecord, PageContext } from '@/types';
-import { getProfiles, getSettings } from '@/lib/storage';
+import { getProfiles, getSettings, patchSettings } from '@/lib/storage';
 import { attachFileInput, fillAnswerFields, fillChoiceGroups, fillTextFields, findNextButton, findSubmitButton, type FillOutcome } from '@/lib/autofill/filler';
 import { buildFieldValues, classifyField, type FieldKey } from '@/lib/autofill/fields';
 import { detectQuestions, hasApplicationForm, resolveLabel, scanFields } from '@/lib/autofill/form-scan';
@@ -196,6 +196,29 @@ export function getPastedDescription(): { text: string; title: string; company: 
 
 /* ------------------- answer / file destinations ------------------- */
 
+/** The standing answers bank: questions the user added by hand. */
+export async function getBankEntries(): Promise<{ id: ID; question: string; answer: string }[]> {
+  const settings = await getSettings();
+  return settings.autofill.answersBank.map((entry) => ({ id: entry.id, question: entry.question, answer: entry.answer }));
+}
+
+export async function saveBankEntry(question: string, answer: string): Promise<{ id: ID; question: string; answer: string }> {
+  const trimmedQuestion = question.trim();
+  const trimmedAnswer = answer.trim();
+  if (!trimmedQuestion || !trimmedAnswer) throw new Error('Both the question and the answer are needed.');
+  const settings = await getSettings();
+  const existing = settings.autofill.answersBank.find((entry) => entry.question.toLowerCase() === trimmedQuestion.toLowerCase());
+  const entry = { id: existing?.id ?? uid('bank'), question: trimmedQuestion, answer: trimmedAnswer, tags: existing?.tags ?? [] };
+  const bank = [...settings.autofill.answersBank.filter((item) => item.id !== entry.id), entry];
+  await patchSettings({ autofill: { answersBank: bank } });
+  return { id: entry.id, question: entry.question, answer: entry.answer };
+}
+
+export async function removeBankEntry(id: ID): Promise<void> {
+  const settings = await getSettings();
+  await patchSettings({ autofill: { answersBank: settings.autofill.answersBank.filter((entry) => entry.id !== id) } });
+}
+
 function isFillableElement(element: HTMLElement): boolean {
   if (element instanceof HTMLTextAreaElement) return true;
   if (element instanceof HTMLInputElement) return element.type !== 'file' && element.type !== 'hidden' && element.type !== 'submit' && element.type !== 'button';
@@ -259,7 +282,7 @@ async function attachDocumentTo(input: HTMLInputElement, documentId: ID): Promis
     setTimeout(() => (input.style.outline = ''), 2200);
     return true;
   } catch (error) {
-    console.warn('[jobpal] attach failed', error);
+    console.warn('[jobpaal] attach failed', error);
     return false;
   }
 }
@@ -387,7 +410,7 @@ function storedRecordToExtracted(job: JobRecord): ExtractedJob {
   };
 }
 
-/** Reuses a job description JobPal already scraped for this posting (any tab, any site). */
+/** Reuses a job description JobPaal already scraped for this posting (any tab, any site). */
 async function fetchStoredJob(title?: string, company?: string): Promise<ExtractedJob | null> {
   try {
     const { job } = await sendMessage('job.forUrl', { url: location.href, title, company }, { timeout: 15000 });
@@ -445,7 +468,7 @@ export async function getJobStatus(): Promise<{ source: JobSource; words: number
   };
 }
 
-/** Explicitly use a job JobPal stored earlier (covers description-on-one-site forms). */
+/** Explicitly use a job JobPaal stored earlier (covers description-on-one-site forms). */
 export async function useStoredJob(jobId: string): Promise<boolean> {
   try {
     const { job } = await sendMessage('job.get', { jobId }, { timeout: 15000 });
@@ -599,6 +622,14 @@ export async function fillForm(payload: FillPayload = {}): Promise<{ filled: num
           payload.answers.map((answer) => ({ label: answer.question, answer: answer.answer })),
         )
       : [];
+  // Questions the user added by hand (answers bank), for fields detection missed.
+  const bankOutcomes =
+    settings.autofill.enabled && settings.autofill.answersBank.length > 0
+      ? fillAnswerFields(
+          document,
+          settings.autofill.answersBank.map((entry) => ({ label: entry.question, answer: entry.answer })),
+        )
+      : [];
 
   if (payload.documentIds && payload.documentIds.length > 0) {
     let effectiveIds = payload.documentIds;
@@ -610,7 +641,7 @@ export async function fillForm(payload: FillPayload = {}): Promise<{ filled: num
     await attachDocuments(effectiveIds, settings.autofill.highlightFilled);
   }
 
-  outcomes.push(...textReport.outcomes, ...choiceOutcomes, ...answerOutcomes);
+  outcomes.push(...textReport.outcomes, ...choiceOutcomes, ...answerOutcomes, ...bankOutcomes);
   const filled = outcomes.filter((outcome) => outcome.status === 'filled').length;
   return {
     filled,
@@ -643,7 +674,7 @@ async function attachDocuments(documentIds: ID[], highlight: boolean): Promise<v
       }
       await sleep(400);
     } catch (error) {
-      console.warn('[jobpal] could not attach document', documentId, error);
+      console.warn('[jobpaal] could not attach document', documentId, error);
     }
   }
 }

@@ -73,7 +73,7 @@ jobs:
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: jobpal-release
+          name: jobpaal-release
           path: release/*
           if-no-files-found: error
 

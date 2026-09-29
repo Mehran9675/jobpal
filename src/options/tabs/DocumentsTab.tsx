@@ -104,7 +104,7 @@ export function DocumentsTab({
       <header className="main__header">
         <div>
           <h1 className="main__title">Documents</h1>
-          <p className="main__subtitle">Every resume, cover letter and answer sheet JobPal has generated, grouped by application. Everything is stored locally.</p>
+          <p className="main__subtitle">Every resume, cover letter and answer sheet JobPaal has generated, grouped by application. Everything is stored locally.</p>
         </div>
         <Button variant="outline" icon={<IconRefresh size={15} />} onClick={() => void reload()}>
           Refresh

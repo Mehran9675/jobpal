@@ -21,8 +21,6 @@ export interface TaskContext {
   /** Always present: AI-powered features are gated on a connection before they get here. */
   chat: ChatRunner;
   profile: Profile;
-  /** Resume wording level from the settings (0 = reworked, 100 = exact). */
-  faithfulness?: number;
 }
 
 export interface JobLike {
@@ -61,7 +59,7 @@ async function runJsonTask<T>(
   vars: Record<string, string>,
 ): Promise<T> {
   const messages: ChatMessage[] = [
-    { role: 'system', content: buildSystemPrompt(ctx.config, task, ctx.faithfulness) },
+    { role: 'system', content: buildSystemPrompt(ctx.config, task) },
     { role: 'user', content: renderTemplate(template, vars) },
   ];
   const result = await ctx.chat({ messages, json: true });
@@ -82,7 +80,7 @@ async function runTextTask(
   vars: Record<string, string>,
 ): Promise<string> {
   const messages: ChatMessage[] = [
-    { role: 'system', content: buildSystemPrompt(ctx.config, task, ctx.faithfulness) },
+    { role: 'system', content: buildSystemPrompt(ctx.config, task) },
     { role: 'user', content: renderTemplate(template, vars) },
   ];
   const result = await ctx.chat({ messages });

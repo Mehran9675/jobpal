@@ -8,7 +8,7 @@ import { Icon } from './Icon';
 export function Fab() {
   const state = useOverlayState();
   const ref = useRef<HTMLButtonElement>(null);
-  const title = state.health.ok ? 'JobPal - drag to move' : `JobPal: ${state.health.issues[0] ?? 'detection issues'} - click for details`;
+  const title = state.health.ok ? 'JobPaal - drag to move' : `JobPaal: ${state.health.issues[0] ?? 'detection issues'} - click for details`;
 
   useLayoutEffect(() => {
     const element = ref.current;

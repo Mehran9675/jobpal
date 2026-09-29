@@ -163,7 +163,7 @@ export function AutomationTab({
       </Show>
 
       <div className="grid grid--2">
-        <SectionCard title="Agent control" hint="Queue jobs from any job page with the “Queue” button, or let JobPal collect them from search pages.">
+        <SectionCard title="Agent control" hint="Queue jobs from any job page with the “Queue” button, or let JobPaal collect them from search pages.">
           <div className="row row--between mb-2">
             <div className="row">
               <span className={`agent-strip__dot ${agent?.running ? (agent.paused ? 'paused' : 'running') : ''}`} />
@@ -299,7 +299,7 @@ export function AutomationTab({
 
         <SectionCard title="Queue" hint="Jobs waiting for the agent. Failed jobs pause the agent - retry when you are ready." action={<Button size="sm" variant="ghost" onClick={() => void action('agent.clearQueue')}>Clear</Button>}>
           <Show if={(agent?.queue ?? []).length === 0}>
-            <EmptyState icon={<IconRobot size={20} />} title="Queue is empty" text="Open a job posting and press “Queue” in the JobPal popup or overlay." />
+            <EmptyState icon={<IconRobot size={20} />} title="Queue is empty" text="Open a job posting and press “Queue” in the JobPaal popup or overlay." />
           </Show>
           <Show if={(agent?.queue ?? []).length > 0}>
             <div className="list">{agent?.queue.slice(0, 12).map(renderQueueItem)}</div>
@@ -316,7 +316,7 @@ export function AutomationTab({
         </Show>
       </SectionCard>
 
-      <SectionCard title="Apply to this page now" hint="Use the JobPal overlay or popup on any job page for a one-off application outside the queue.">
+      <SectionCard title="Apply to this page now" hint="Use the JobPaal overlay or popup on any job page for a one-off application outside the queue.">
         <Button variant="outline" onClick={() => navigate('dashboard')}>
           Back to dashboard
         </Button>

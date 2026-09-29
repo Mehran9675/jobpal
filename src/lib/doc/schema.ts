@@ -154,7 +154,7 @@ export function profileToResume(
     languages: profile.languages.map((language) => ({ language: language.language, fluency: language.level })),
     meta: {
       version: 'v1.0.0',
-      generator: 'JobPal',
+      generator: 'JobPaal',
       template: template.id,
       generatedAt: new Date().toISOString(),
     },

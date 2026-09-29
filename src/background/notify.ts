@@ -16,7 +16,7 @@ export async function notify(title: string, message: string, level: 'info' | 'su
 }
 
 export async function notifyNeedsAttention(title: string, message: string): Promise<void> {
-  await notify(title, `${message}\nClick to open the JobPal management page.`, 'warning');
+  await notify(title, `${message}\nClick to open the JobPaal management page.`, 'warning');
 }
 
 export function installNotificationClickHandler(): void {
@@ -28,7 +28,7 @@ export function installNotificationClickHandler(): void {
 export async function notifyAgentState(state: AgentState): Promise<void> {
   if (!state.running) return;
   await notify(
-    state.paused ? 'JobPal agent paused' : 'JobPal agent working',
+    state.paused ? 'JobPaal agent paused' : 'JobPaal agent working',
     state.paused ? 'The agent needs your attention.' : `Queue: ${state.queue.filter((item) => item.status === 'queued').length} remaining · ${state.appliedToday} applied today.`,
     state.paused ? 'warning' : 'info',
   );

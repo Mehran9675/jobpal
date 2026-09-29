@@ -29,7 +29,7 @@ export function JobPicker() {
         </button>
       </div>
       <div className="jp-guide-hint">
-        Pick a job description JobPal already read. Useful when the description and the application form live on different pages or sites.
+        Pick a job description JobPaal already read. Useful when the description and the application form live on different pages or sites.
       </div>
       <Show if={state.recentJobsLoading}>
         <div className="jp-guide-value">Loading jobs…</div>

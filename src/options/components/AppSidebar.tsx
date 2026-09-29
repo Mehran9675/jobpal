@@ -35,7 +35,7 @@ export function AppSidebar({
       <div className="sidebar__brand">
         <div className="sidebar__logo">◈</div>
         <div>
-          <div className="sidebar__title">JobPal</div>
+          <div className="sidebar__title">JobPaal</div>
           <div className="sidebar__subtitle">Application copilot</div>
         </div>
       </div>

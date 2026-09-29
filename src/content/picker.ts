@@ -37,7 +37,7 @@ export function cancelPicking(): void {
 }
 
 /**
- * Lets the user click any element on the page to tell JobPal where a piece of
+ * Lets the user click any element on the page to tell JobPaal where a piece of
  * information lives. Returns null when the user presses Escape.
  */
 export function startPicking(target: PickTarget, selectorFor: (element: Element) => string): Promise<PickResult | null> {
@@ -62,7 +62,7 @@ export function startPicking(target: PickTarget, selectorFor: (element: Element)
 
     const badge = document.createElement('div');
     badge.setAttribute('data-jobpal-picker', 'badge');
-    badge.textContent = `JobPal · ${PICK_LABELS[target]} - click to select, Esc to cancel`;
+    badge.textContent = `JobPaal · ${PICK_LABELS[target]} - click to select, Esc to cancel`;
     Object.assign(badge.style, {
       position: 'fixed',
       pointerEvents: 'none',
