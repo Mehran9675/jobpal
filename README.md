@@ -52,15 +52,6 @@ Frontier labs, inference clouds, regional providers and local servers - add only
 - Optional EEO/sensitive-field filling - off by default behind an explicit toggle.
 - Filled fields are highlighted so you can verify before submitting.
 
-### Autonomous agent
-- Queue jobs from any posting (“Queue” in the popup, overlay, side panel or right-click menu) or scan job-search pages for matches.
-- Works through the queue in background tabs: extracts the posting → scores the match → generates documents → fills the form → optionally submits.
-- Human-like pacing, daily limits, working-hours windows, and a rolling log.
-- **Safety gates:** never submits unless Auto mode + auto-submit are enabled, every enabled rule passes, form-fill confidence exceeds your threshold, and the domain isn’t blocked. Assist mode always hands the final click back to you.
-
-### Curated rules (one-click toggles)
-`Only jobs that match my experience` (score threshold), `Apply to jobs with some missing skills`, `Remote only`, `Require salary`, `Minimum salary`, `Skip stale postings`, `Avoid staffing agencies`, `Seniority match`, `Never apply twice to the same company`, `Always include a cover letter`, `Answer screening questions`, `Fill EEO questions`, `Always ask before submitting`, `Human-like pacing`.
-
 ### Management page (options)
 - **Dashboard** - pipeline stats, AI/agent status, live agent log.
 - **My profile** - contact info, links, summary, work history, education, skills, certifications, languages, projects, awards, eligibility, EEO. Multiple **variants** with a default.
