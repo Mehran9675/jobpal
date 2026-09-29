@@ -32,12 +32,12 @@ export function ActionsRow() {
       disabled: !state.context.hasApplicationForm,
       onClick: () => void runFill(),
     },
-    {
-      label: 'Add to agent queue',
-      icon: 'robot',
-      disabled: !state.job,
-      onClick: () => void runQueue(),
-    },
+    // {
+    //   label: 'Add to agent queue',
+    //   icon: 'robot',
+    //   disabled: !state.job,
+    //   onClick: () => void runQueue(),
+    // },
     {
       label: state.guideOpen ? 'Hide field guide' : 'Guide me',
       icon: 'target',

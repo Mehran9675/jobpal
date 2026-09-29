@@ -26,7 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'templates', label: 'Resume designs', section: 'Documents', icon: <IconPalette /> },
   { id: 'ai', label: 'AI providers', section: 'Intelligence', icon: <IconCpu /> },
   { id: 'prompts', label: 'Prompts & style', section: 'Intelligence', icon: <IconMessage /> },
-  { id: 'automation', label: 'Automation', section: 'Agent', icon: <IconRobot /> },
+  // { id: 'automation', label: 'Automation', section: 'Agent', icon: <IconRobot /> },
   { id: 'settings', label: 'Settings', section: 'System', icon: <IconSettings /> },
 ];
 

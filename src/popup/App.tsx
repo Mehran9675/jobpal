@@ -329,20 +329,20 @@ export function PopupApp() {
             onRecalculate={context?.hasJob && ai.ready ? () => void checkMatch() : undefined}
             calculating={busy === 'match'}
           />
-          <AgentStrip
-            running={Boolean(agent?.running)}
-            paused={Boolean(agent?.paused)}
-            queued={agent?.queue.filter((item) => item.status === 'queued').length ?? 0}
-            appliedToday={agent?.appliedToday ?? 0}
-            startDisabled={!ai.ready}
-            onStart={() =>
-              void action('agent.start')
-                .then(() => toast.success('Agent started.'))
-                .catch((error) => toast.error(errorMessage(error)))
-            }
-            onPause={() => void action('agent.pause')}
-            onResume={() => void action('agent.resume')}
-          />
+          {/*<AgentStrip*/}
+          {/*  running={Boolean(agent?.running)}*/}
+          {/*  paused={Boolean(agent?.paused)}*/}
+          {/*  queued={agent?.queue.filter((item) => item.status === 'queued').length ?? 0}*/}
+          {/*  appliedToday={agent?.appliedToday ?? 0}*/}
+          {/*  startDisabled={!ai.ready}*/}
+          {/*  onStart={() =>*/}
+          {/*    void action('agent.start')*/}
+          {/*      .then(() => toast.success('Agent started.'))*/}
+          {/*      .catch((error) => toast.error(errorMessage(error)))*/}
+          {/*  }*/}
+          {/*  onPause={() => void action('agent.pause')}*/}
+          {/*  onResume={() => void action('agent.resume')}*/}
+          {/*/>*/}
           <Show if={showAgentProgress}>
             <div className="progress progress--indeterminate">
               <div className="progress__bar" />

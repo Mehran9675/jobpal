@@ -36,9 +36,9 @@ export function MainView() {
       </Show>
       <TailoringSlider />
       <ActionsRow />
-      <Show if={!state.aiReady}>
-        <AiNotice />
-      </Show>
+      {/*<Show if={!state.aiReady}>*/}
+      {/*  <AiNotice />*/}
+      {/*</Show>*/}
       <Show if={!state.job && !state.guideOpen}>
         <NoJobNotice />
       </Show>
