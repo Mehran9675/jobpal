@@ -1,0 +1,75 @@
+name: Release builds
+
+on:
+  release:
+    types: [created, published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to attach the builds to (e.g. v1.0.20)
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+
+jobs:
+  package:
+    name: Typecheck, build and pack browser bundles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Smoke tests
+        run: npm run smoke
+
+      - name: Build Chrome bundle
+        run: npm run build
+
+      - name: Build Firefox bundle
+        run: npm run build:firefox
+
+      - name: Verify the manifest version matches the tag
+        run: |
+          node -e "
+            const fs = require('node:fs');
+            const version = JSON.parse(fs.readFileSync('dist/manifest.json', 'utf8')).version;
+            const tag = (process.env.RELEASE_TAG || '').replace(/^v/, '');
+            if (version !== tag) {
+              console.error('Manifest version ' + version + ' does not match release tag ' + tag);
+              process.exit(1);
+            }
+            console.log('Version ' + version + ' matches release tag');
+          "
+
+      - name: Pack browser builds
+        run: npm run package
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jobpal-release
+          path: release/*
+          if-no-files-found: error
+
+      - name: Attach archives to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$RELEASE_TAG" release/*.zip release/*.xpi --clobber

@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "JobPal — AI job application copilot",
+    "description": "Extension name."
+  },
+  "extDescription": {
+    "message": "Tailors your resume, CV and cover letter to any job posting and applies for you — with OpenAI, Claude, Gemini, DeepSeek or a local model.",
+    "description": "Extension description."
+  }
+}
