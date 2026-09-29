@@ -59,6 +59,7 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
         templateId: 'user-file',
       };
       await saveDocument(record);
+      await sendMessage('app.documentsChanged', undefined).catch(() => undefined);
       await loadUploaded();
       await patchDocument(kind === 'resume' ? { uploadedResumeId: record.id, fileSource: 'uploaded' } : { uploadedCoverLetterId: record.id, fileSource: 'uploaded' });
       toast.success(`${file.name} saved - JobPal will attach your own file.`);
@@ -71,6 +72,7 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
     const existing = uploadedFor(kind);
     if (!existing) return;
     await deleteDocument(existing.id);
+    await sendMessage('app.documentsChanged', undefined).catch(() => undefined);
     await loadUploaded();
     await patchDocument(kind === 'resume' ? { uploadedResumeId: null } : { uploadedCoverLetterId: null });
     toast.push('Uploaded file removed.');

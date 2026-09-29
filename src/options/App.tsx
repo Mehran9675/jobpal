@@ -11,7 +11,7 @@ export function OptionsApp() {
   useTheme(settings);
   const [route, setRoute] = useState<AppRoute>(() => parseHash(window.location.hash));
   const [lastEvent, setLastEvent] = useState(0);
-  const { applications } = useApplications();
+  const { applications, reload: reloadApplications } = useApplications();
 
   useEffect(() => {
     const listener = () => setRoute(parseHash(window.location.hash));
@@ -20,7 +20,12 @@ export function OptionsApp() {
   }, []);
 
   useRuntimeEvents((name) => {
-    if (name === 'applications-changed') setLastEvent(Date.now());
+    // Any application or document mutation must refresh the list, otherwise the
+    // management page keeps showing the pre-edit data until a manual reload.
+    if (name === 'applications-changed' || name === 'job-updated') {
+      void reloadApplications();
+      setLastEvent(Date.now());
+    }
   });
 
   const navigate = useCallback((tab: string, param?: string) => {

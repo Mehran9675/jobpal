@@ -166,6 +166,7 @@ export interface RequestMap {
   'app.clearData': { req: { scope: 'documents' | 'applications' | 'jobs' | 'all' }; res: { cleared: string[] } };
   'app.import': { req: { json: string }; res: { ok: boolean; message: string } };
   'app.contextChanged': { req: undefined; res: undefined };
+  'app.documentsChanged': { req: undefined; res: undefined };
   'app.ping': { req: undefined; res: { ok: true; version: string } };
 }
 

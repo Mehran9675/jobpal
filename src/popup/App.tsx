@@ -312,7 +312,7 @@ export function PopupApp() {
               checked={settings.ui.showOverlay !== false}
               onChange={(showOverlay) => void patch({ ui: { showOverlay } })}
               label="Page overlay"
-              hint="Show the floating JobPal button on web pages."
+              hint="The button appears automatically on job pages; use Select fields below to open it anywhere else."
             />
           </div>
           <Show if={!ai.ready}>

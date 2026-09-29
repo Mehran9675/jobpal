@@ -64,6 +64,9 @@ function registerHandlers(): void {
   router.handle('app.contextChanged', async () => {
     await broadcast('context-changed');
   });
+  router.handle('app.documentsChanged', async () => {
+    await broadcast('applications-changed');
+  });
   router.handle('app.clearData', async ({ scope }) => {
     const cleared: string[] = [];
     const { idbClear } = await import('@/lib/db');
@@ -450,6 +453,7 @@ function registerHandlers(): void {
     };
     await saveDocument(updated);
     await recordEvent({ type: 'document-created', applicationId: document.applicationId, detail: `${file.filename} was edited and re-rendered` });
+    await broadcast('applications-changed', { applicationId: document.applicationId });
     return { document: sanitizeDocuments([updated])[0] };
   });
   router.handle('doc.download', async ({ documentId }) => downloadDocument(documentId));
@@ -464,6 +468,7 @@ function registerHandlers(): void {
         await saveApplication({ ...application, documents: application.documents.filter((id) => id !== documentId), updatedAt: Date.now() });
       }
     }
+    await broadcast('applications-changed', { applicationId: document.applicationId });
   });
   router.handle('doc.preview', async ({ kind, applicationId }) => {
     const settings = await getSettings();

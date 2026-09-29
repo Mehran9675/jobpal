@@ -108,9 +108,12 @@ function registerPageHandlers(): void {
 }
 
 function shouldMount(): boolean {
-  // The floating button is always available on web pages so the manual paths
-  // (pick, paste, recent jobs) work even when nothing was detected.
-  return location.protocol.startsWith('http');
+  // Autodetect: the floating button shows up on job postings and application
+  // forms. On anything else it stays hidden, but the popup ("Select fields"),
+  // the side panel and the context menus force-mount the overlay on demand.
+  if (!location.protocol.startsWith('http')) return false;
+  const context = actions.buildContext();
+  return context.site !== 'other' || context.hasJob || context.hasApplicationForm;
 }
 
 function mount(): void {
