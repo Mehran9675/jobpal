@@ -1,6 +1,6 @@
 # JobPaal - AI job-application copilot
 
-A production-ready browser extension (Chrome, Edge, Brave, Opera, Firefox) that reads your resume or LinkedIn profile, reads any job posting, generates a machine-readable resume / CV / cover letter **tailored to that exact application**, fills the application form for you, and can even apply on your behalf in the background.
+A production-ready browser extension (Chrome, Edge, Brave, Opera, Firefox) that reads your resume or LinkedIn profile, reads any job posting, generates a machine-readable resume / CV / cover letter **tailored to that exact application**, fills the application form for you.
 
 Built with **TypeScript + React + SCSS + Vite**, Manifest V3, zero backend.
 
@@ -28,7 +28,6 @@ Built with **TypeScript + React + SCSS + Vite**, Manifest V3, zero backend.
 - **Knows what it read - and says so** - the overlay has a **Job description** panel reporting the source and size of the description it will tailor against (*read from this page*, *reused from a stored job*, *from your manual selection or pasted text*, or *not found · N words*), with a scrollable preview plus **Pick on page**, **Paste**, **Recent jobs** and **Use this page** actions. **Paste** reads the clipboard directly and only accepts text that looks like a real description (prose, not form labels), so it takes one click; the guide's paste box remains for manual pasting. Descriptions are persisted per posting, so opening the application tab later (or an ATS form on a different site) still tailors against the original posting - and if it genuinely cannot read one, you can pick it, paste it or choose a stored job yourself.
 - **Deliberately bounded form support** - the autofill covers the common cases: single-page forms, LinkedIn Easy Apply and standard ATS pages (Greenhouse, Lever, Workday, Ashby, SmartRecruiters, BambooHR…). Deliberately weird flows (custom multi-step wizards that reveal fields as you go, forms split across domains, image-only postings) are handled by the manual paths instead: pick or paste the description, map any field yourself, send answers to specific fields, and download/attach your files. Some modern frameworks only register input typed by hand: if a site reports a filled field as empty on submit, click into the field and type (then remove) a character and the whole value registers - the overlay says this too. The extension says when it could not read something rather than guessing.
 - **Readable, adjustable overlay** - the hovering box uses a larger default type scale, the field guide is collapsed by default (with a one-line “Guide me” prompt when no job is detected), and **A− / A+** buttons in the header scale the whole panel from 85% to 160%; the chosen size is remembered.
-- **Truthfulness guarantees** - the system prompt forbids invented employers, dates, degrees or metrics; custom prompts cannot override this.
 
 ### Bring your own AI (40+ pre-programmed providers)
 Frontier labs, inference clouds, regional providers and local servers - add only an API key:
@@ -71,7 +70,6 @@ Frontier labs, inference clouds, regional providers and local servers - add only
 - **No pointless cover letters** - a cover letter is only generated when the application form actually has a field for one; request it explicitly (e.g. the overlay’s *Generate now* on the Cover letter row) to override.
 - **AI providers** - the catalogue above, key management, test connection, activation.
 - **Prompts & style** - global instructions, tone, words to avoid, themes to emphasise, and editable per-task templates with placeholder reference.
-- **Automation** - agent controls, queue, rules, limits, working hours, domain allow/block lists, log.
 - **Settings** - theme, accent, autofill behaviour, JSON backup/restore, danger-zone data deletion, privacy overview.
 
 ---
