@@ -1,9 +1,9 @@
 import { Button } from '@/ui/components';
-import { IconGauge, IconKeyboard, IconPaste, IconPlay, IconRobot, IconSparkles, IconTarget } from '@/ui/components/Icons';
+import { IconGauge, IconKeyboard, IconPaste, IconSparkles, IconTarget } from '@/ui/components/Icons';
 
 export interface ContextAction {
   label: string;
-  icon: 'sparkles' | 'gauge' | 'robot' | 'target' | 'paste' | 'play' | 'keyboard';
+  icon: 'sparkles' | 'gauge' | 'target' | 'paste' | 'keyboard';
   variant: 'primary' | 'outline' | 'default';
   disabled: boolean;
   title?: string;
@@ -14,10 +14,8 @@ export interface ContextAction {
 const ACTION_ICONS = {
   sparkles: <IconSparkles size={14} />,
   gauge: <IconGauge size={14} />,
-  robot: <IconRobot size={14} />,
   target: <IconTarget size={14} />,
   paste: <IconPaste size={14} />,
-  play: <IconPlay size={14} />,
   keyboard: <IconKeyboard size={14} />,
 };
 

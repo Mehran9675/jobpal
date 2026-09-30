@@ -1,5 +1,5 @@
 import { Button } from '@/ui/components';
-import { IconPaste, IconRobot, IconSparkles, IconTarget } from '@/ui/components/Icons';
+import { IconPaste, IconSparkles, IconTarget } from '@/ui/components/Icons';
 
 export function JobActions({
   hasJob,
@@ -7,7 +7,6 @@ export function JobActions({
   busy,
   tailoring,
   onTailor,
-  onQueue,
   onGuide,
   onPaste,
 }: {
@@ -16,7 +15,6 @@ export function JobActions({
   busy: boolean;
   tailoring: boolean;
   onTailor: () => void;
-  onQueue: () => void;
   onGuide: () => void;
   onPaste: () => void;
 }) {
@@ -33,9 +31,6 @@ export function JobActions({
         onClick={onTailor}
       >
         Tailor & fill
-      </Button>
-      <Button variant="ghost" icon={<IconRobot size={15} />} disabled={!hasJob} onClick={onQueue}>
-        Queue
       </Button>
       <Button variant={hasJob ? 'ghost' : 'outline'} icon={<IconTarget size={15} />} title="Point JobPaal at the job title, company and description yourself" onClick={onGuide}>
         Select fields

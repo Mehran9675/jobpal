@@ -9,19 +9,17 @@ import { PasteJobModal, type PastedJobInput } from '@/ui/components/PasteJobModa
 import { Show, TermsNotice, type MatchCardData } from '@/ui/components';
 import { termsAccepted } from '@/lib/legal';
 import { useToast } from '@/ui/components/Toast';
-import { useAgent, useApplications, usePageContext, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
+import { useApplications, usePageContext, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
 import { SidePanelHeader } from './components/SidePanelHeader';
 import { AiNotice } from './components/AiNotice';
 import { JobCard } from './components/JobCard';
 import { DocumentsCard } from './components/DocumentsCard';
 import { AnswersCard } from './components/AnswersCard';
-import { AgentCard } from './components/AgentCard';
 
 export function SidePanelApp() {
   const { settings } = useSettings();
   useTheme(settings);
   const { context, tabId, reload: reloadContext } = usePageContext(4000);
-  const { agent } = useAgent(5000);
   const { applications, reload: reloadApplications } = useApplications();
   const toast = useToast();
   const [job, setJob] = useState<ExtractedJob | null>(null);
@@ -146,15 +144,10 @@ export function SidePanelApp() {
     });
 
   const submitPasted = useCallback(
-    async (input: PastedJobInput, mode: 'tailor' | 'queue') => {
+    async (input: PastedJobInput) => {
       const pastedJob = buildPastedJob(input, context);
       if (tabId !== null) {
         await sendTabMessage(tabId, 'page.setPastedDescription', { text: input.text, title: input.title, company: input.company }, { timeout: 8000 }).catch(() => undefined);
-      }
-      if (mode === 'queue') {
-        const state = await sendMessage('agent.enqueue', { jobs: [pastedJob] });
-        toast.success(`Queued. ${state.queue.filter((item) => item.status === 'queued').length} job(s) waiting.`);
-        return;
       }
       const result = await sendMessage('pipeline.tailor', { job: pastedJob }, { timeout: 240000 });
       setDocuments(result.documents);
@@ -277,7 +270,6 @@ export function SidePanelApp() {
               .catch(() => toast.error('Could not send the stop request.'))
           }
           onTailor={() => void tailor()}
-          onQueue={() => void sendMessage('agent.enqueueFromPage', { tabId: tabId ?? undefined }).then(() => toast.success('Queued for the agent.'))}
           onGuide={() => guideMe()}
           onPaste={() => setPasteOpen(true)}
           aiReady={ai.ready}
@@ -292,15 +284,13 @@ export function SidePanelApp() {
         <Show if={showAnswers}>
           <AnswersCard application={application as ApplicationRecord} onCopyAll={() => void copyAnswers()} onCopyAnswer={(answer) => void copyAnswer(answer)} />
         </Show>
-        <AgentCard agent={agent} onConfigure={() => openOptions('automation')} />
       </div>
       <PasteJobModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}
         defaultTitle={context?.jobTitle ?? context?.title}
         defaultCompany={context?.company}
-        onTailor={(input) => submitPasted(input, 'tailor')}
-        onQueue={(input) => submitPasted(input, 'queue')}
+        onTailor={(input) => submitPasted(input)}
       />
     </div>
   );

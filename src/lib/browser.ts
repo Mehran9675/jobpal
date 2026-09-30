@@ -4,8 +4,6 @@ interface BrowserLike {
   runtime: typeof chrome.runtime;
   storage: typeof chrome.storage;
   tabs: typeof chrome.tabs;
-  scripting: typeof chrome.scripting;
-  alarms: typeof chrome.alarms;
   notifications?: typeof chrome.notifications;
   contextMenus?: typeof chrome.contextMenus;
   downloads?: typeof chrome.downloads;

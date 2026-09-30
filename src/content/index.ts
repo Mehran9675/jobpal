@@ -73,9 +73,6 @@ function registerPageHandlers(): void {
   router.handle('page.scanLinkedInJobs', () => actions.scanJobListings());
   router.handle('page.detectForm', () => actions.detectForm());
   router.handle('page.fillForm', (payload) => actions.fillForm(payload ?? {}));
-  router.handle('page.submitForm', () => actions.submitForm());
-  router.handle('page.advanceStep', () => actions.advanceStep());
-  router.handle('page.collectFormSnapshot', () => actions.collectFormSnapshot());
   router.handle('page.pickField', (payload) => actions.pickJobField(payload.target));
   router.handle('page.getPicks', () => actions.getPicks());
   router.handle('page.pickAnswerTarget', ({ question, answer }) => actions.pickAnswerTarget(question, answer));

@@ -14,19 +14,17 @@ export function PasteJobModal({
   defaultTitle,
   defaultCompany,
   onTailor,
-  onQueue,
 }: {
   open: boolean;
   onClose: () => void;
   defaultTitle?: string;
   defaultCompany?: string;
   onTailor: (input: PastedJobInput) => Promise<void>;
-  onQueue?: (input: PastedJobInput) => Promise<void>;
 }) {
   const [text, setText] = useState('');
   const [title, setTitle] = useState(defaultTitle ?? '');
   const [company, setCompany] = useState(defaultCompany ?? '');
-  const [busy, setBusy] = useState<'tailor' | 'queue' | null>(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,21 +36,20 @@ export function PasteJobModal({
 
   if (!open) return null;
 
-  const submit = async (action: 'tailor' | 'queue') => {
+  const submit = async () => {
     if (text.trim().length < 40) {
       setError('Paste the full job description first (at least a few sentences) so the tailoring has something to work with.');
       return;
     }
-    setBusy(action);
+    setBusy(true);
     setError(null);
     try {
-      if (action === 'tailor') await onTailor({ text: text.trim(), title: title.trim(), company: company.trim() });
-      else await onQueue?.({ text: text.trim(), title: title.trim(), company: company.trim() });
+      await onTailor({ text: text.trim(), title: title.trim(), company: company.trim() });
       onClose();
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
@@ -83,15 +80,10 @@ export function PasteJobModal({
       </div>
       {error && <div className="field__error mb-2">{error}</div>}
       <div className="modal__footer">
-        {onQueue && (
-          <Button variant="ghost" loading={busy === 'queue'} onClick={() => void submit('queue')}>
-            Add to agent queue
-          </Button>
-        )}
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button variant="primary" loading={busy === 'tailor'} onClick={() => void submit('tailor')}>
+        <Button variant="primary" loading={busy} onClick={() => void submit()}>
           Save & tailor
         </Button>
       </div>

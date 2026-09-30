@@ -7,10 +7,7 @@ export function ApplicationRow({ application, onOpen }: { application: Applicati
     <tr style={{ cursor: 'pointer' }} onClick={() => onOpen(application)}>
       <td>
         <div className="strong">{application.jobTitle}</div>
-        <div className="tiny muted">
-          {application.site} · {application.source === 'agent' ? 'agent' : 'manual'}
-          <Show if={application.autoSubmitted}> · auto-submitted</Show>
-        </div>
+        <div className="tiny muted">{application.site}</div>
       </td>
       <td>{application.company}</td>
       <td>

@@ -226,7 +226,7 @@ export function TemplatesTab({ settings, patchSettings }: { settings: AppSetting
           hint={
             document.fileSource === 'uploaded'
               ? uploadedDocs.length > 0
-                ? 'Autofill and the agent will attach your uploads.'
+                ? 'Autofill will attach your uploads.'
                 : 'Upload at least one file below, otherwise generated documents are used.'
               : 'Generated documents are attached.'
           }

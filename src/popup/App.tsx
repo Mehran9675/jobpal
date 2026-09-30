@@ -9,14 +9,13 @@ import { PasteJobModal, type PastedJobInput } from '@/ui/components/PasteJobModa
 import { Show, TermsNotice, Toggle, type MatchCardData } from '@/ui/components';
 import { termsAccepted } from '@/lib/legal';
 import { useToast } from '@/ui/components/Toast';
-import { useAgent, useApplications, usePageContext, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
+import { useApplications, usePageContext, useRuntimeEvents, useSettings, useTheme } from '@/ui/hooks';
 import { buildPastedJob } from '@/lib/job/pasted';
 import { PopupHeader } from './components/PopupHeader';
 import { PopupFooter } from './components/PopupFooter';
 import { AiNotice } from './components/AiNotice';
 import { ContextCard } from './components/ContextCard';
 import type { ContextAction } from './components/ContextActions';
-import { AgentStrip } from './components/AgentStrip';
 import { BusyBlock } from './components/BusyBlock';
 import { FilesCard } from './components/FilesCard';
 import { AnswersCard } from './components/AnswersCard';
@@ -26,7 +25,6 @@ export function PopupApp() {
   const { settings, patch } = useSettings();
   useTheme(settings);
   const { context, tabId, reload: reloadContext } = usePageContext();
-  const { agent, action } = useAgent(5000);
   const { applications, reload: reloadApplications } = useApplications();
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
@@ -159,14 +157,6 @@ export function PopupApp() {
       setMatchOpen(true);
     });
 
-  const queueJob = () =>
-    run('queue', async () => {
-      const job = await extractJob();
-      if (!job) throw new Error('No job posting detected on this page.');
-      const state = await sendMessage('agent.enqueue', { jobs: [job] });
-      return `Queued. ${state.queue.filter((item) => item.status === 'queued').length} job(s) waiting.`;
-    });
-
   const guideMe = useCallback(async () => {
     if (tabId === null) return;
     try {
@@ -178,15 +168,10 @@ export function PopupApp() {
   }, [tabId, toast]);
 
   const submitPasted = useCallback(
-    async (input: PastedJobInput, mode: 'tailor' | 'queue') => {
+    async (input: PastedJobInput) => {
       const job = buildPastedJob(input, context);
       if (tabId !== null) {
         await sendTabMessage(tabId, 'page.setPastedDescription', { text: input.text, title: input.title, company: input.company }, { timeout: 8000 }).catch(() => undefined);
-      }
-      if (mode === 'queue') {
-        const state = await sendMessage('agent.enqueue', { jobs: [job] });
-        toast.success(`Queued. ${state.queue.filter((item) => item.status === 'queued').length} job(s) waiting.`);
-        return;
       }
       await sendMessage('pipeline.tailor', { job }, { timeout: 240000 });
       toast.success('Documents ready.');
@@ -273,15 +258,6 @@ export function PopupApp() {
       onSelect: () => void fillOnly(),
     },
     {
-      label: 'Queue',
-      icon: 'robot',
-      variant: 'outline',
-      disabled: !context?.hasJob,
-      title: 'Add this job to the agent queue',
-      loading: busy === 'queue',
-      onSelect: () => void queueJob(),
-    },
-    {
       label: 'Select fields',
       icon: 'target',
       variant: context?.hasJob ? 'outline' : 'primary',
@@ -311,7 +287,6 @@ export function PopupApp() {
   const title = context?.jobTitle ?? context?.title ?? 'Open a job posting to get started';
   const meta = context?.company ?? (context?.url ? new URL(context.url).hostname : 'JobPaal watches job pages and application forms');
   const tokensToday = usage ? `${formatTokens(todayUsage(usage).totalTokens)}` : '';
-  const showAgentProgress = Boolean(agent?.running) && !agent?.currentItem;
   const showAnswers = (currentApplication?.answers ?? []).length > 0;
 
   return (
@@ -341,25 +316,6 @@ export function PopupApp() {
             onRecalculate={context?.hasJob && ai.ready ? () => void checkMatch() : undefined}
             calculating={busy === 'match'}
           />
-          {/*<AgentStrip*/}
-          {/*  running={Boolean(agent?.running)}*/}
-          {/*  paused={Boolean(agent?.paused)}*/}
-          {/*  queued={agent?.queue.filter((item) => item.status === 'queued').length ?? 0}*/}
-          {/*  appliedToday={agent?.appliedToday ?? 0}*/}
-          {/*  startDisabled={!ai.ready}*/}
-          {/*  onStart={() =>*/}
-          {/*    void action('agent.start')*/}
-          {/*      .then(() => toast.success('Agent started.'))*/}
-          {/*      .catch((error) => toast.error(errorMessage(error)))*/}
-          {/*  }*/}
-          {/*  onPause={() => void action('agent.pause')}*/}
-          {/*  onResume={() => void action('agent.resume')}*/}
-          {/*/>*/}
-          <Show if={showAgentProgress}>
-            <div className="progress progress--indeterminate">
-              <div className="progress__bar" />
-            </div>
-          </Show>
           <Show if={Boolean(busy)}>
             <BusyBlock
               progressText={progressText}
@@ -398,8 +354,7 @@ export function PopupApp() {
         onClose={() => setPasteOpen(false)}
         defaultTitle={context?.jobTitle ?? context?.title}
         defaultCompany={context?.company}
-        onTailor={(input) => submitPasted(input, 'tailor')}
-        onQueue={(input) => submitPasted(input, 'queue')}
+        onTailor={(input) => submitPasted(input)}
       />
     </>
   );

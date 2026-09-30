@@ -266,7 +266,6 @@ export interface JobRecord {
 export type ApplicationStatus =
   | 'draft'
   | 'ready'
-  | 'queued'
   | 'applied'
   | 'screening'
   | 'interview'
@@ -279,7 +278,6 @@ export type ApplicationStatus =
 export const APPLICATION_STATUSES: { id: ApplicationStatus; label: string; tone: string }[] = [
   { id: 'draft', label: 'Draft', tone: 'neutral' },
   { id: 'ready', label: 'Ready to apply', tone: 'info' },
-  { id: 'queued', label: 'Queued for agent', tone: 'info' },
   { id: 'applied', label: 'Applied', tone: 'primary' },
   { id: 'screening', label: 'Screening', tone: 'primary' },
   { id: 'interview', label: 'Interview', tone: 'success' },
@@ -318,10 +316,8 @@ export interface ApplicationRecord {
   answers: AnswerRecord[];
   timeline: TimelineEvent[];
   notes: string;
-  source: 'manual' | 'agent';
-  autoSubmitted: boolean;
+  source: 'manual';
   matchScore?: number;
-  needsAttention?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -553,41 +549,6 @@ export interface DocumentSettings {
 }
 
 /* ------------------------------------------------------------------ */
-/* Automation                                                          */
-/* ------------------------------------------------------------------ */
-
-export interface RuleDef {
-  id: string;
-  label: string;
-  description: string;
-  group: 'filters' | 'behaviour' | 'privacy';
-  defaultEnabled: boolean;
-  configurable?: 'number' | 'text' | 'list';
-  defaultValue?: string | number;
-}
-
-export interface AutomationSettings {
-  enabled: boolean;
-  mode: 'assist' | 'auto';
-  autoSubmit: boolean;
-  dailyLimit: number;
-  minDelaySeconds: number;
-  maxDelaySeconds: number;
-  matchThreshold: number;
-  minConfidenceToSubmit: number;
-  rules: Record<string, { enabled: boolean; value?: string | number }>;
-  neverSubmitDomains: string[];
-  allowlistEnabled: boolean;
-  allowlist: string[];
-  huntEnabled: boolean;
-  huntKeywords: string;
-  huntLocations: string;
-  maxPagesPerRun: number;
-  workingHours: { enabled: boolean; start: number; end: number; days: number[] };
-  notifyOnIssue: boolean;
-}
-
-/* ------------------------------------------------------------------ */
 /* Prompts                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -638,7 +599,6 @@ export interface AppSettings {
   ai: AIConfig;
   prompts: PromptConfig;
   document: DocumentSettings;
-  automation: AutomationSettings;
   autofill: AutofillSettings;
   ui: UISettings;
   terms: TermsSettings;
@@ -669,32 +629,8 @@ export interface MatchResult {
   recommendation: 'strong_match' | 'good_match' | 'stretch' | 'weak_match';
 }
 
-export interface AgentState {
-  running: boolean;
-  paused: boolean;
-  mode: 'assist' | 'auto';
-  appliedToday: number;
-  lastRunAt?: number;
-  queue: AgentQueueItem[];
-  currentItem?: AgentQueueItem;
-  log: { at: number; level: 'info' | 'warn' | 'error' | 'success'; message: string }[];
-  stats: { applied: number; skipped: number; failed: number; needsAttention: number };
-}
-
-export interface AgentQueueItem {
-  id: ID;
-  url: string;
-  title: string;
-  company: string;
-  site: JobSite;
-  status: 'queued' | 'processing' | 'done' | 'failed' | 'skipped' | 'needs-attention';
-  reason?: string;
-  matchScore?: number;
-  addedAt: number;
-}
-
 export interface StoredApplicationEvent {
-  type: 'application-created' | 'document-created' | 'application-updated' | 'agent-event';
+  type: 'application-created' | 'document-created' | 'application-updated';
   applicationId?: ID;
   at: number;
   detail?: string;

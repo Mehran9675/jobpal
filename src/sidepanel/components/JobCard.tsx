@@ -17,7 +17,6 @@ export function JobCard({
   progressText,
   onStop,
   onTailor,
-  onQueue,
   onGuide,
   onPaste,
   aiReady,
@@ -34,7 +33,6 @@ export function JobCard({
   progressText: string;
   onStop: () => void;
   onTailor: () => void;
-  onQueue: () => void;
   onGuide: () => void;
   onPaste: () => void;
   aiReady: boolean;
@@ -51,7 +49,6 @@ export function JobCard({
         busy={Boolean(busyLabel)}
         tailoring={busyLabel === 'tailor'}
         onTailor={onTailor}
-        onQueue={onQueue}
         onGuide={onGuide}
         onPaste={onPaste}
       />

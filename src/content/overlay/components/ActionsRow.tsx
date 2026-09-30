@@ -1,6 +1,6 @@
 import type { IconName } from './Icon';
 import { patchOverlay, useOverlayState } from '../store';
-import { runFill, runOpen, runQueue, runTailorOrFill } from '../actions';
+import { runFill, runOpen, runTailorOrFill } from '../actions';
 import { ActionButton } from './ActionButton';
 
 interface ActionDefinition {
@@ -32,12 +32,6 @@ export function ActionsRow() {
       disabled: !state.context.hasApplicationForm,
       onClick: () => void runFill(),
     },
-    // {
-    //   label: 'Add to agent queue',
-    //   icon: 'robot',
-    //   disabled: !state.job,
-    //   onClick: () => void runQueue(),
-    // },
     {
       label: state.guideOpen ? 'Hide field guide' : 'Guide me',
       icon: 'target',

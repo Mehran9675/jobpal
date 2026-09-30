@@ -1,6 +1,6 @@
 import type { AnswerRecord, ExtractedJob, ID, JobRecord, PageContext } from '@/types';
 import { getProfiles, getSettings, patchSettings } from '@/lib/storage';
-import { attachFileInput, fillAnswerFields, fillChoiceGroups, fillTextFields, findNextButton, findSubmitButton, type FillOutcome } from '@/lib/autofill/filler';
+import { attachFileInput, fillAnswerFields, fillChoiceGroups, fillTextFields, type FillOutcome } from '@/lib/autofill/filler';
 import { buildFieldValues, classifyField, type FieldKey } from '@/lib/autofill/fields';
 import { detectQuestions, hasApplicationForm, resolveLabel, scanFields } from '@/lib/autofill/form-scan';
 import { detectPageSite, adapterForUrl, extractJobFromDocument, extractJobSearchCards, extractLinkedInProfile, seemsLikeJobPosting } from '@/lib/job/sites';
@@ -677,44 +677,4 @@ async function attachDocuments(documentIds: ID[], highlight: boolean): Promise<v
       console.warn('[jobpaal] could not attach document', documentId, error);
     }
   }
-}
-
-const SUCCESS_PATTERNS = /(thank you for applying|application (was )?(submitted|received|sent)|we('| ha)ve received your|successfully applied|application complete|thanks for your interest)/i;
-
-export async function submitForm(): Promise<{ submitted: boolean; reason?: string }> {
-  const button = findSubmitButton(document);
-  if (!button) return { submitted: false, reason: 'No submit button found - finish this application manually.' };
-  const beforeUrl = location.href;
-  button.scrollIntoView({ block: 'center' });
-  await sleep(300);
-  button.click();
-  for (let attempt = 0; attempt < 8; attempt++) {
-    await sleep(700);
-    const text = (document.body?.innerText ?? '').slice(0, 8000);
-    if (location.href !== beforeUrl && !/login|sign ?in|register/i.test(location.pathname)) return { submitted: true };
-    if (SUCCESS_PATTERNS.test(text)) return { submitted: true };
-  }
-  return { submitted: true };
-}
-
-export async function advanceStep(): Promise<{ advanced: boolean; step: number; label?: string }> {
-  const button = findNextButton(document);
-  if (!button) return { advanced: false, step: 0, label: 'No next button found' };
-  const label = normalizeWhitespace(button.textContent ?? '');
-  button.click();
-  await sleep(900);
-  const step = document.querySelectorAll('[data-automation-id="progressBar"] li, .artdeco-completeness-meter__step, ol li[aria-current]').length;
-  return { advanced: true, step, label };
-}
-
-export function collectFormSnapshot(): { fields: { selector: string; label: string; type: string; value: string }[]; questions: ReturnType<typeof detectQuestions> } {
-  const fields = scanFields(document)
-    .filter((field) => field.visible)
-    .map((field) => ({
-      selector: field.id ? `#${field.id}` : field.name ? `[name="${field.name}"]` : field.type,
-      label: field.label,
-      type: field.type,
-      value: (field.element.value ?? '').slice(0, 400),
-    }));
-  return { fields, questions: detectQuestions(document) };
 }

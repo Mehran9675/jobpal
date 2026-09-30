@@ -52,10 +52,7 @@ export function getManifest(target: 'chrome' | 'firefox') {
     permissions: [
       'storage',
       'unlimitedStorage',
-      'activeTab',
-      'scripting',
       'tabs',
-      'alarms',
       'notifications',
       'contextMenus',
       'downloads',

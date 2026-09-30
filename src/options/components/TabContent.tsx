@@ -7,7 +7,6 @@ import { ApplicationsTab } from '../tabs/ApplicationsTab';
 import { TemplatesTab } from '../tabs/TemplatesTab';
 import { AITab } from '../tabs/AITab';
 import { PromptsTab } from '../tabs/PromptsTab';
-import { AutomationTab } from '../tabs/AutomationTab';
 import { SettingsTab } from '../tabs/SettingsTab';
 import { TermsTab } from '../tabs/TermsTab';
 
@@ -39,8 +38,6 @@ export function TabContent({
       return <AITab settings={settings} patchSettings={patchSettings} />;
     case 'prompts':
       return <PromptsTab settings={settings} patchSettings={patchSettings} />;
-    case 'automation':
-      return <AutomationTab settings={settings} patchSettings={patchSettings} navigate={navigate} />;
     case 'settings':
       return <SettingsTab settings={settings} patchSettings={patchSettings} />;
     case 'terms':

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AgentState, AppSettings, ApplicationRecord, DocumentRecord, ID, PageContext, Profile } from '@/types';
+import type { AppSettings, ApplicationRecord, DocumentRecord, ID, PageContext, Profile } from '@/types';
 import { sendMessage, sendTabMessage, errorMessage } from '@/lib/messaging';
 import { tabsQuery } from '@/lib/browser';
 import { DEFAULT_SETTINGS } from '@/lib/defaults';
@@ -94,28 +94,6 @@ export function useApplications() {
 
 export function useDocuments(applicationId?: ID) {
   return useAsyncData<DocumentRecord[]>(() => sendMessage('documents.list', applicationId ? { applicationId } : undefined), [applicationId], []);
-}
-
-export function useAgent(pollMs = 4000) {
-  const { data, loading, reload, setData } = useAsyncData<AgentState | undefined>(() => sendMessage('agent.state', undefined), []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      void reload();
-    }, pollMs);
-    return () => clearInterval(interval);
-  }, [pollMs, reload]);
-
-  const action = useCallback(
-    async (type: 'agent.start' | 'agent.stop' | 'agent.pause' | 'agent.resume' | 'agent.clearQueue') => {
-      const next = type === 'agent.start' ? await sendMessage('agent.start', { mode: 'assist' }) : await sendMessage(type, undefined);
-      setData(next);
-      return next;
-    },
-    [setData],
-  );
-
-  return { agent: data, loading, reload, action };
 }
 
 export function usePageContext(pollMs = 3000) {

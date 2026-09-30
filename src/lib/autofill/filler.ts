@@ -209,38 +209,6 @@ export function fillAnswerFields(root: ParentNode, answers: { label: string; ans
   return outcomes;
 }
 
-export function findSubmitButton(root: ParentNode = document): HTMLElement | null {
-  const selectors = [
-    'button[type="submit"]',
-    'input[type="submit"]',
-    'button[data-automation-id="bottom-navigation-next-button"]',
-    'button[aria-label*="submit" i]',
-    'button[id*="submit" i]',
-    'button[class*="submit" i]',
-    'button[data-testid*="submit" i]',
-  ];
-  for (const selector of selectors) {
-    const element = root.querySelector<HTMLElement>(selector);
-    if (element && !element.hasAttribute('disabled')) return element;
-  }
-  const labelled = [...root.querySelectorAll<HTMLElement>('button, a[role="button"]')].find((element) =>
-    /submit|send application|apply now|finish application/i.test(element.textContent ?? ''),
-  );
-  return labelled ?? null;
-}
-
-export function findNextButton(root: ParentNode = document): HTMLElement | null {
-  const selectors = ['button[data-automation-id="bottom-navigation-next-button"]', 'button[aria-label*="next" i]', 'button[id*="next" i]', 'button[class*="next" i]'];
-  for (const selector of selectors) {
-    const element = root.querySelector<HTMLElement>(selector);
-    if (element && !element.hasAttribute('disabled')) return element;
-  }
-  const labelled = [...root.querySelectorAll<HTMLElement>('button, a[role="button"]')].find((element) =>
-    /^(next|continue|save and continue|review)$/i.test(normalizeWhitespace(element.textContent ?? '')),
-  );
-  return labelled ?? null;
-}
-
 export function describeField(field: ScannedField): string {
   return `${field.label || field.name || field.type} (${field.key}, ${Math.round(field.confidence * 100)}%)`;
 }

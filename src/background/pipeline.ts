@@ -26,7 +26,7 @@ export interface TailorOptions {
   formats?: DocFormat[];
   questions?: ApplicationQuestion[];
   forceAnalysis?: boolean;
-  source?: 'manual' | 'agent';
+  source?: 'manual';
   applicationId?: ID;
   /** Signals detected on the application form. */
   form?: { hasCoverLetterField?: boolean };
@@ -130,7 +130,6 @@ export async function tailorForJob(input: ExtractedJob, options: TailorOptions =
       timeline: [{ at: now, label: 'Application created by JobPaal', status: 'draft' }],
       notes: '',
       source: options.source ?? 'manual',
-      autoSubmitted: false,
       matchScore: analysis.matchScore,
     };
     await saveApplication(application);
@@ -148,14 +147,11 @@ export async function tailorForJob(input: ExtractedJob, options: TailorOptions =
   }
 
   const questions = options.questions ?? job.questions;
-  const rules = settings.automation.rules;
   const requestedKinds = options.kinds;
   // Cover letters are only auto-generated when the application form actually
   // has a field for one (or when the user explicitly asks for it).
-  const includeCoverLetter = requestedKinds
-    ? requestedKinds.includes('cover_letter')
-    : Boolean(options.form?.hasCoverLetterField) && rules['always-cover-letter']?.enabled !== false;
-  const includeAnswers = questions.length > 0 && (requestedKinds ? requestedKinds.includes('answers') : rules['answer-screening']?.enabled !== false);
+  const includeCoverLetter = requestedKinds ? requestedKinds.includes('cover_letter') : Boolean(options.form?.hasCoverLetterField);
+  const includeAnswers = questions.length > 0 && (requestedKinds ? requestedKinds.includes('answers') : true);
   const baseKinds: DocKind[] = requestedKinds ?? [
     'resume',
     ...(includeCoverLetter ? (['cover_letter'] as DocKind[]) : []),

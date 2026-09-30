@@ -117,9 +117,6 @@ export function ApplicationDetail({
               {APPLICATION_STATUSES.map(renderStatusOption)}
             </Select>
           </Field>
-          <Show if={Boolean(application.needsAttention)}>
-            <Badge tone="warning">Needs attention: {application.needsAttention}</Badge>
-          </Show>
           <div className="divider" />
           <div className="col">
             <Show if={application.answers.length > 0}>

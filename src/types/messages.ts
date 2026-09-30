@@ -15,7 +15,6 @@ import type {
   ProviderConnection,
   ApplicationQuestion,
   BaseResume,
-  AgentState,
   ApplicationRecord,
 } from './index';
 
@@ -36,12 +35,9 @@ export interface RequestMap {
   'page.scanLinkedInJobs': { req: undefined; res: ExtractedJob[] };
   'page.detectForm': { req: undefined; res: { found: boolean; fields: number; questions: ApplicationQuestion[]; hasCoverLetterField: boolean } };
   'page.fillForm': { req: { documentIds?: ID[]; answers?: AnswerRecord[]; dryRun?: boolean }; res: { filled: number; skipped: number; total: number; fields: { label: string; key: string; confidence: number }[] } };
-  'page.submitForm': { req: undefined; res: { submitted: boolean; reason?: string } };
-  'page.advanceStep': { req: undefined; res: { advanced: boolean; step: number; label?: string } };
   'page.highlight': { req: { selector?: string }; res: undefined };
   'page.openOverlayPanel': { req: undefined; res: undefined };
   'page.openGuide': { req: undefined; res: undefined };
-  'page.collectFormSnapshot': { req: undefined; res: { fields: { selector: string; label: string; type: string; value: string }[]; questions: ApplicationQuestion[] } };
 
   /* manual guidance (field picker + per-site recipes) */
   'page.pickField': {
@@ -142,19 +138,6 @@ export interface RequestMap {
     req: { url: string; title?: string; company?: string };
     res: { applicationId?: ID; documents: DocumentRecord[]; answers: AnswerRecord[]; uploaded: DocumentRecord[] };
   };
-
-  /* agent */
-  'agent.state': { req: undefined; res: AgentState };
-  'agent.start': { req: { mode?: 'assist' | 'auto' }; res: AgentState };
-  'agent.stop': { req: undefined; res: AgentState };
-  'agent.pause': { req: undefined; res: AgentState };
-  'agent.resume': { req: undefined; res: AgentState };
-  'agent.enqueue': { req: { jobs: ExtractedJob[] }; res: AgentState };
-  'agent.enqueueFromPage': { req: { tabId?: number } | undefined; res: AgentState };
-  'agent.retry': { req: { id: ID }; res: AgentState };
-  'agent.removeItem': { req: { id: ID }; res: AgentState };
-  'agent.clearQueue': { req: undefined; res: AgentState };
-  'agent.applyCurrent': { req: { autoSubmit?: boolean }; res: { applicationId?: ID; status: string; message: string } };
 
   /* settings */
   'settings.get': { req: undefined; res: import('./index').AppSettings };

@@ -389,19 +389,6 @@ export async function runAnalyze(): Promise<void> {
   });
 }
 
-export async function runQueue(): Promise<void> {
-  await withBusy('Adding this job to the agent queue…', async () => {
-    const state = getOverlayState();
-    const job = state.job ?? (await extractJobResolved());
-    if (!job) {
-      setStatus('No job detected on this page.', 'warn');
-      return;
-    }
-    const agent = await sendMessage('agent.enqueue', { jobs: [job] });
-    setStatus(`Queued. ${agent.queue.filter((item) => item.status === 'queued').length} job(s) waiting for the agent.`, 'success');
-  });
-}
-
 export async function runOpen(): Promise<void> {
   const state = getOverlayState();
   if (state.context.site === 'linkedin-profile') {

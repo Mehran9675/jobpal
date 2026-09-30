@@ -18,21 +18,7 @@ import { getTemplate } from '@/lib/doc/templates';
 import { previewHtml, renderFiles } from '@/lib/doc/renderer';
 import { isEditableKind, serializeAnswersContent, serializeCoverLetterContent, serializeResumeContent } from '@/lib/doc/content';
 import { tailorForJob, updateApplicationStatus, upsertJob, buildTaskContextForProfile } from './pipeline';
-import { chatWithSettings, requireAIConnection } from './ai-router';
-import {
-  agentClearQueue,
-  agentEnqueue,
-  agentPause,
-  agentRemoveItem,
-  agentResume,
-  agentRetryItem,
-  agentStart,
-  agentStop,
-  AGENT_ALARM,
-  applyToCurrentTab,
-  getAgentState,
-  processNextItem,
-} from './agent';
+import { chatWithSettings } from './ai-router';
 import { downloadDocument } from './downloads';
 import { installNotificationClickHandler, notify } from './notify';
 import type { ExtractedJob } from '@/types';
@@ -597,39 +583,6 @@ function registerHandlers(): void {
     await tabsBroadcast(tabId, { type: 'frame.pickDone', payload: { token, result } }, 0);
     await tabsBroadcast(tabId, { type: 'frame.pickStop', payload: { token } });
   });
-
-  /* ----------------------------- agent --------------------------- */
-  router.handle('agent.state', () => getAgentState());
-  router.handle('agent.start', async ({ mode }) => {
-    requireAIConnection(await getSettings());
-    await patchSettings({ automation: { enabled: true } });
-    return agentStart(mode ?? 'assist');
-  });
-  router.handle('agent.stop', () => agentStop());
-  router.handle('agent.pause', () => agentPause('Paused by user.'));
-  router.handle('agent.resume', () => agentResume());
-  router.handle('agent.enqueue', async ({ jobs }) => agentEnqueue(jobs));
-  router.handle('agent.enqueueFromPage', async (payload, sender) => {
-    const tabId = payload?.tabId ?? activeTabId(sender) ?? (await tabsQuery({ active: true, currentWindow: true }))[0]?.id;
-    if (tabId === undefined) return getAgentState();
-    const jobs = await collectJobsFromTab(tabId);
-    return agentEnqueue(jobs);
-  });
-  router.handle('agent.clearQueue', () => agentClearQueue());
-  router.handle('agent.retry', ({ id }) => agentRetryItem(id));
-  router.handle('agent.removeItem', ({ id }) => agentRemoveItem(id));
-  router.handle('agent.applyCurrent', async ({ autoSubmit }, sender) => {
-    const tabId = activeTabId(sender) ?? (await tabsQuery({ active: true, currentWindow: true }))[0]?.id;
-    if (tabId === undefined) throw new Error('No active tab');
-    const result = await applyToCurrentTab(tabId, { autoSubmit });
-    await broadcast('applications-changed', { applicationId: result.applicationId });
-    return result;
-  });
-}
-
-async function collectJobsFromTab(tabId: number): Promise<ExtractedJob[]> {
-  const response = await tabSendMessage<{ ok: boolean; data?: ExtractedJob[] }>(tabId, { type: 'page.scanLinkedInJobs', payload: undefined }).catch(() => undefined);
-  return response?.data ?? [];
 }
 
 /**
@@ -686,7 +639,6 @@ function installContextMenus(): void {
       contexts: ['page'],
     });
     chrome.contextMenus.create({ id: 'jobpal-fill', title: 'JobPaal: fill this application form', contexts: ['page'] });
-    chrome.contextMenus.create({ id: 'jobpal-queue', title: 'JobPaal: add this job to my agent queue', contexts: ['page'] });
     chrome.contextMenus.create({ type: 'separator', id: 'jobpal-sep', contexts: ['page'] });
     chrome.contextMenus.create({ id: 'jobpal-scan-profile', title: 'JobPaal: scan this LinkedIn profile', contexts: ['page'] });
     chrome.contextMenus.create({ id: 'jobpal-open', title: 'JobPaal: open management page', contexts: ['page', 'action'] });
@@ -718,15 +670,11 @@ function installContextMenus(): void {
       }
       case 'jobpal-fill': {
         await tabSendMessage(tab.id, { type: 'page.openOverlayPanel', payload: undefined }).catch(() => undefined);
-        const result = await applyToCurrentTab(tab.id, { autoSubmit: false });
-        await notify('Form filled', result.message, result.status === 'error' ? 'warning' : 'success');
-        break;
-      }
-      case 'jobpal-queue': {
-        const job = await tabSendMessage<{ ok: boolean; data?: ExtractedJob | null }>(tab.id, { type: 'page.extractJob', payload: undefined }).catch(() => undefined);
-        if (job?.data) {
-          await agentEnqueue([job.data]);
-          await notify('Added to queue', `${job.data.title} was added to the agent queue.`, 'info');
+        const result = await tabSendMessage<{ ok: boolean; data?: { filled: number; total: number } }>(tab.id, { type: 'page.fillForm', payload: {} }).catch(() => undefined);
+        if (result?.data) {
+          await notify('Form filled', `Filled ${result.data.filled} of ${result.data.total} fields. Review the form, then submit.`, 'success');
+        } else {
+          await notify('Could not fill the form', 'Open JobPaal on the page and use Fill this form instead.', 'warning');
         }
         break;
       }
@@ -741,18 +689,11 @@ function installContextMenus(): void {
   });
 }
 
-function installAlarms(): void {
-  chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === AGENT_ALARM) void processNextItem();
-  });
+function installLifecycle(): void {
   chrome.runtime.onInstalled.addListener(async (details) => {
-    await chrome.alarms.create(AGENT_ALARM, { periodInMinutes: 1 });
     if (details.reason === 'install') {
       await openOptionsPage('welcome');
     }
-  });
-  chrome.runtime.onStartup.addListener(async () => {
-    await chrome.alarms.create(AGENT_ALARM, { periodInMinutes: 1 });
   });
 }
 
@@ -773,7 +714,7 @@ export async function bootstrap(): Promise<void> {
   registerHandlers();
   router.install();
   installContextMenus();
-  installAlarms();
+  installLifecycle();
   installNotificationClickHandler();
   installSidePanelBehaviour();
   await storageLocalGet(['jobpal.version']).then(async (items) => {
@@ -781,7 +722,6 @@ export async function bootstrap(): Promise<void> {
       await storageLocalSet({ 'jobpal.version': runtime.getManifest().version });
     }
   });
-  await recordEvent({ type: 'agent-event', detail: 'Service worker booted' });
 }
 
 void bootstrap();

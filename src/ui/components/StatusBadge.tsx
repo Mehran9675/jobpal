@@ -8,7 +8,7 @@ export function StatusBadge({ status }: { status: string }) {
         ? 'danger'
         : status === 'applied' || status === 'screening'
           ? 'primary'
-          : status === 'queued' || status === 'ready'
+          : status === 'ready'
             ? 'info'
             : 'neutral';
   return <Badge tone={tone}>{status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}</Badge>;
